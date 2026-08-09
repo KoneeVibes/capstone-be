@@ -28,17 +28,30 @@ const updateStaff = async (req: Request, res: Response) => {
 		const oldAvatar = foundStaffMember?.avatar;
 
 		const updateData = {
-			firstName,
-			middleName,
-			lastName,
-			email,
-			phone,
-			role,
+			...(firstName !== undefined ? { firstName } : {}),
+			...(middleName !== undefined ? { middleName } : {}),
+			...(lastName !== undefined ? { lastName } : {}),
+			...(email !== undefined ? { email } : {}),
+			...(phone !== undefined ? { phone } : {}),
+			...(role !== undefined ? { role } : {}),
 			...(path ? { avatar: path } : {}),
 		};
-		const updatedStaffMember = await User.findOneAndUpdate(query, updateData, {
-			new: true,
-		});
+		if (Object.keys(updateData).length === 0) {
+			return res.status(400).json({
+				status: "fail",
+				message: "Provide at least one field to update.",
+			});
+		}
+
+		const updatedStaffMember = await User.findOneAndUpdate(
+			query,
+			{ $set: updateData },
+			{
+				new: true,
+				runValidators: true,
+				projection: { password: 0 },
+			},
+		);
 		if (!updatedStaffMember) {
 			return res.status(404).json({
 				status: "fail",

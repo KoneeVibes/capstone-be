@@ -5,17 +5,17 @@ import isValidString from "../../helper/isValidString.ts";
 
 const addStaff = async (req: Request, res: Response) => {
 	const { path } = req.file || {};
-	const { firstName, middleName, lastName, email, phone } = req.body;
+	const { firstName, middleName, lastName, email, phone, role } = req.body;
 
-	if (!firstName || !lastName || !email || !phone) {
+	if (!firstName || !lastName || !email || !phone || !role) {
 		return res.status(400).json({
 			status: "fail",
 			message:
-				"Required fields are missing - First Name, Last Name, Email, Phone. Cannot Proceed.",
+				"Required fields are missing - First Name, Last Name, Email, Phone, Role. Cannot Proceed.",
 		});
 	}
 
-	if (![firstName, lastName, email, phone].every(isValidString)) {
+	if (![firstName, lastName, email, phone, role].every(isValidString)) {
 		return res.status(400).json({
 			status: "fail",
 			message: "Ensure all fields are valid strings, Cannot Proceed",
@@ -39,6 +39,7 @@ const addStaff = async (req: Request, res: Response) => {
 			lastName,
 			email,
 			phone,
+			role,
 			avatar: path,
 			type: "staff",
 			password: defaultPIN,

@@ -11,6 +11,14 @@
  *   schemas:
  *     Staff:
  *       type: object
+ *       required:
+ *         - id
+ *         - firstName
+ *         - lastName
+ *         - email
+ *         - role
+ *         - type
+ *         - status
  *       properties:
  *         id:
  *           type: string
@@ -38,11 +46,14 @@
  *           type: string
  *           format: uri
  *           nullable: true
- *           example: "https://res.cloudinary.com/demo/image/upload/v1610000000/avatar/example.jpg"
+ *           example: "https://res.cloudinary.com/demo/image/upload/avatar/example.jpg"
  *         role:
  *           type: string
- *           nullable: true
- *           example: Property Manager
+ *           enum:
+ *             - admin
+ *             - manager
+ *             - regular
+ *           example: manager
  *         type:
  *           type: string
  *           example: staff
@@ -75,7 +86,7 @@
  *     tags:
  *       - Staff
  *     summary: Add a staff member
- *     description: Creates a new staff account with a system-generated ID and default password.
+ *     description: Creates a staff member with a generated ID and default password.
  *     requestBody:
  *       required: true
  *       content:
@@ -87,6 +98,7 @@
  *               - lastName
  *               - email
  *               - phone
+ *               - role
  *             properties:
  *               firstName:
  *                 type: string
@@ -105,10 +117,17 @@
  *               phone:
  *                 type: string
  *                 example: "+2348012345678"
+ *               role:
+ *                 type: string
+ *                 enum:
+ *                   - admin
+ *                   - manager
+ *                   - regular
+ *                 example: manager
  *               avatar:
  *                 type: string
  *                 format: binary
- *                 description: Optional staff profile image. Accepted formats are JPG, JPEG, and PNG.
+ *                 description: Optional profile image. Accepted formats are JPG, JPEG, and PNG.
  *     responses:
  *       201:
  *         description: Staff successfully added
@@ -217,6 +236,7 @@
  *     tags:
  *       - Staff
  *     summary: Update a staff member
+ *     description: Updates only the fields supplied in the request. An existing avatar is retained unless a new image is uploaded.
  *     parameters:
  *       - in: path
  *         name: userId
@@ -251,8 +271,11 @@
  *                 example: "+2348012345678"
  *               role:
  *                 type: string
- *                 nullable: true
- *                 example: Property Manager
+ *                 enum:
+ *                   - admin
+ *                   - manager
+ *                   - regular
+ *                 example: manager
  *               avatar:
  *                 type: string
  *                 format: binary
@@ -273,6 +296,8 @@
  *                   example: Staff member updated successfully.
  *                 data:
  *                   $ref: "#/components/schemas/Staff"
+ *       400:
+ *         description: No update fields were provided
  *       404:
  *         description: Staff member not found
  *       500:
