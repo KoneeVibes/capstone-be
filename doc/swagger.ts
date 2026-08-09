@@ -5,6 +5,9 @@ import swaggerJSDoc from "swagger-jsdoc";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+const fileExtension = import.meta.url.endsWith(".ts") ? "ts" : "js";
+const docsDirectory = path.join(__dirname, "route").replace(/\\/g, "/");
+
 const options = {
 	definition: {
 		openapi: "3.0.0",
@@ -28,7 +31,7 @@ const options = {
 		// },
 		// security: [{ BearerAuth: [] }],
 	},
-	apis: [path.join(__dirname, "route/**/*.{ts,js}")],
+	apis: [`${docsDirectory}/**/*.${fileExtension}`],
 };
 
 const swaggerSpec = swaggerJSDoc(options);

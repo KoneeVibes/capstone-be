@@ -1,8 +1,15 @@
-const mongoose = require("mongoose");
-require("dotenv").config();
+import mongoose from "mongoose";
+import dotenv from "dotenv";
+
+dotenv.config();
 
 function dBConnect() {
-	const dBConnection = mongoose.createConnection(process.env.CONNECTION_STRING);
+	const connectionString = process.env.CONNECTION_STRING;
+	if (!connectionString) {
+		throw new Error("CONNECTION_STRING is not defined");
+	}
+
+	const dBConnection = mongoose.createConnection(connectionString);
 
 	dBConnection.on("connected", () => {
 		console.log("Successfully connected to database");
