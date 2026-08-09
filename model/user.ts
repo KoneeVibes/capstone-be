@@ -47,6 +47,21 @@ const userSchema = new Schema(
 			type: String,
 			default: null,
 			enum: ["super-admin", "admin", "manager", "regular"],
+			validate: {
+				validator: function (value: string | null) {
+					if (this.type === "staff") {
+						return ["super-admin", "admin", "manager", "regular"].includes(
+							value ?? "",
+						);
+					}
+					return value === null;
+				},
+				message(this: any): string {
+					return this.type === "staff"
+						? "Staff users must have a valid role: super-admin, admin, manager, or regular."
+						: "Only staff users can have a role.";
+				},
+			},
 		},
 		organization: {
 			type: String,
