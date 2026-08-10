@@ -47,7 +47,7 @@ const updateStaff = async (req: Request, res: Response) => {
 			query,
 			{ $set: updateData },
 			{
-				new: true,
+				returnDocument: "after",
 				runValidators: true,
 				projection: { password: 0 },
 			},
