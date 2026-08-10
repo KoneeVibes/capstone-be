@@ -47,8 +47,11 @@ const userSchema = new Schema(
 			type: String,
 			default: null,
 			enum: ["super-admin", "admin", "manager", "regular"],
+			required: function (this: any) {
+				return this.type === "staff";
+			},
 			validate: {
-				validator: function (value: string | null) {
+				validator: function (this: any, value: string | null) {
 					if (this.type === "staff") {
 						return ["super-admin", "admin", "manager", "regular"].includes(
 							value ?? "",
@@ -81,7 +84,7 @@ const userSchema = new Schema(
 	{ timestamps: true },
 );
 
-userSchema.pre("save", async function () {
+userSchema.pre("save", async function (this: any) {
 	if (this.isModified("password")) {
 		const saltRounds = 10;
 		this.password = await bcrypt.hash(this.password, saltRounds);
