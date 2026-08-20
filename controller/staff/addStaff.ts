@@ -1,7 +1,7 @@
 import { v4 as uuidv4 } from "uuid";
 import User from "../../model/user.ts";
 import type { Request, Response } from "express";
-import isValidString from "../../helper/isValidString.ts";
+import isValidString from "../../validator/isValidString.ts";
 
 const addStaff = async (req: Request, res: Response) => {
 	const { path } = req.file || {};
