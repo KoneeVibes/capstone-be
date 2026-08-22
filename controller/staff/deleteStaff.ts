@@ -11,16 +11,19 @@ const deleteStaff = async (req: Request, res: Response) => {
 	}
 
 	try {
-		const deletedStaffMember = await User.findOneAndUpdate(
-			{
-				id: userId,
-				type: "staff",
-			},
-			{
-				status: "inactive",
-			},
-			{ new: true },
-		);
+		const query = {
+			id: userId,
+			type: "staff",
+			status: "active",
+		} as const;
+
+		const updateData = {
+			status: "inactive",
+		} as const;
+
+		const deletedStaffMember = await User.findOneAndUpdate(query, updateData, {
+			new: true,
+		});
 		if (!deletedStaffMember) {
 			return res.status(404).json({
 				status: "fail",

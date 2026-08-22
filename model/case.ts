@@ -13,6 +13,10 @@ const caseSchema = new Schema(
 			required: true,
 			enum: ["website", "mobile-app", "third-party-api"],
 		},
+		assigneeId: {
+			type: String,
+			default: null,
+		},
 		applicantName: {
 			type: String,
 			required: true,

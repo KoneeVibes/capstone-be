@@ -59,6 +59,6 @@ router.get("/", retrieveAllCase);
 router.get("/:caseId", retrieveCase);
 router.delete("/:caseId", deleteCase);
 router.post("/", fileUpload(options), addCase);
-router.put("/:caseId", fileUpload(options), updateCase);
+router.patch("/:caseId", fileUpload(options), updateCase);
 
 export default router;

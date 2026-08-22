@@ -1,6 +1,7 @@
 import { v4 as uuidv4 } from "uuid";
 import Case from "../../model/case.ts";
 import Invoice from "../../model/invoice.ts";
+import dbConnect from "../../db/dbConnect.ts";
 import type { Request, Response } from "express";
 import LOCATION_RATES from "../../config/location.ts";
 import type { InquiryPurpose } from "../../type/purpose.ts";
@@ -81,6 +82,22 @@ const addCase = async (req: Request, res: Response) => {
 		});
 	};
 
+	const location = LOCATION_RATES.find(
+		(rate) =>
+			rate.state === propertyState &&
+			rate.lga === propertyLGA &&
+			rate.city === propertyCity,
+	);
+	if (!location) {
+		return res.status(404).json({
+			status: "fail",
+			message: "No price is configured for this location.",
+		});
+	}
+
+	const session = await dbConnect.startSession();
+	session.startTransaction();
+
 	try {
 		const normalizedInquiryPurpose = normalizeEnumValues(
 			inquiryPurpose,
@@ -111,25 +128,9 @@ const addCase = async (req: Request, res: Response) => {
 			propertyTitleDocument: titleDocument,
 			status: "submitted",
 		});
-		const savedCase = await newCase.save();
+		const savedCase = await newCase.save({ session });
 		if (!savedCase) {
-			return res.status(400).json({
-				status: "fail",
-				message: "Failed to save the new staff member. Please try again.",
-			});
-		}
-
-		const location = LOCATION_RATES.find(
-			(rate) =>
-				rate.state === propertyState &&
-				rate.lga === propertyLGA &&
-				rate.city === propertyCity,
-		);
-		if (!location) {
-			return res.status(404).json({
-				status: "fail",
-				message: "No price is configured for this location.",
-			});
+			throw new Error("Failed to save the new staff member. Please try again.");
 		}
 
 		const totalPayable = calculateTotalPayable(
@@ -138,19 +139,23 @@ const addCase = async (req: Request, res: Response) => {
 		);
 		const items = createInvoiceItems(totalPayable, propertyState);
 
-		const caseInvoice = await Invoice.create({
-			id: uuidv4(),
-			caseId,
-			items,
-		});
+		const [caseInvoice] = await Invoice.create(
+			[
+				{
+					id: uuidv4(),
+					caseId,
+					items,
+				},
+			],
+			{ session },
+		);
 		if (!caseInvoice) {
-			return res.status(400).json({
-				status: "fail",
-				message:
-					"Failed to generate corresponding case invoice. Please try again.",
-			});
+			throw new Error(
+				"Failed to generate corresponding case invoice. Please try again.",
+			);
 		}
 
+		await session.commitTransaction();
 		return res.status(201).json({
 			status: "success",
 			message: "Case successfully added",
@@ -158,11 +163,14 @@ const addCase = async (req: Request, res: Response) => {
 		});
 	} catch (error) {
 		console.error(error);
+		await session.abortTransaction();
 		return res.status(500).json({
 			status: "fail",
 			message:
 				"Server encountered an issue in adding this case. Please contact the administrator for assistance.",
 		});
+	} finally {
+		await session.endSession();
 	}
 };
 

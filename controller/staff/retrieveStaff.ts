@@ -11,11 +11,13 @@ const retrieveStaff = async (req: Request, res: Response) => {
 	}
 
 	try {
-		const staffMember = await User.findOne({
+		const query = {
 			id: userId,
 			type: "staff",
 			status: "active",
-		}).select("-password");
+		} as const;
+
+		const staffMember = await User.findOne(query).select("-password");
 		if (!staffMember) {
 			return res.status(404).json({
 				status: "fail",
@@ -33,7 +35,7 @@ const retrieveStaff = async (req: Request, res: Response) => {
 		return res.status(500).json({
 			status: "fail",
 			message:
-				"Server encountered an issue in retrieving staff memberat this moment. Please retry",
+				"Server encountered an issue in retrieving staff member at this moment. Please retry",
 		});
 	}
 };
