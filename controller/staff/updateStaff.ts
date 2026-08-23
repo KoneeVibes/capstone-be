@@ -49,9 +49,8 @@ const updateStaff = async (req: Request, res: Response) => {
 			{
 				returnDocument: "after",
 				runValidators: true,
-				projection: { password: 0 },
 			},
-		);
+		).select("-password");
 		if (!updatedStaffMember) {
 			return res.status(404).json({
 				status: "fail",
