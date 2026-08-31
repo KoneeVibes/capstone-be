@@ -47,6 +47,18 @@ const invoiceSchema = new Schema(
 				message: "An invoice must contain at least one item.",
 			},
 		},
+		transactionAccessCode: {
+			type: String,
+			default: null,
+			unique: true,
+			sparse: true,
+		},
+		transactionReference: {
+			type: String,
+			default: null,
+			unique: true,
+			sparse: true,
+		},
 		totalPayable: {
 			type: Number,
 			required: true,

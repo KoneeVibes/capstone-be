@@ -7,6 +7,7 @@ const retrieveAllCase = async (req: Request, res: Response) => {
 	try {
 		const allowableStatuses = [
 			"submitted",
+			"payment-validated",
 			"assigned",
 			"accepted",
 			"pending-information",

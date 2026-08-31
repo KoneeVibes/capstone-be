@@ -13,6 +13,7 @@
  *       type: object
  *       required:
  *         - id
+ *         - trackingId
  *         - source
  *         - applicantName
  *         - applicantEmail
@@ -30,6 +31,10 @@
  *           type: string
  *           format: uuid
  *           example: "7c8d3a65-6c09-489f-96d5-0f8454b5a8be"
+ *         trackingId:
+ *           type: string
+ *           format: nanoid
+ *           example: "PI-8K4M2Q"
  *         source:
  *           type: string
  *           enum:
@@ -112,6 +117,7 @@
  *           type: string
  *           enum:
  *             - submitted
+ *             - payment-validated
  *             - assigned
  *             - accepted
  *             - pending-information
@@ -268,6 +274,7 @@
  *             type: string
  *             enum:
  *               - submitted
+ *               - payment-validated
  *               - assigned
  *               - accepted
  *               - pending-information
@@ -390,7 +397,7 @@
  *               status:
  *                 type: string
  *                 enum:
- *                   - submitted
+ *                   - payment-validated
  *                   - assigned
  *                   - accepted
  *                   - pending-information

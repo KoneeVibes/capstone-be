@@ -13,6 +13,7 @@ const deleteCase = async (req: Request, res: Response) => {
 	try {
 		const allowableStatuses = [
 			"submitted",
+			"payment-validated",
 			"assigned",
 			"accepted",
 			"pending-information",
@@ -25,8 +26,21 @@ const deleteCase = async (req: Request, res: Response) => {
 			status: "suspended",
 		} as const;
 
-		const deletedCase = await Case.findOneAndUpdate(query, updateData, {
-			new: true,
+		const updateOperation: Record<string, unknown> = {
+			$set: updateData,
+		};
+
+		updateOperation.$push = {
+			statusHistory: {
+				status: "suspended",
+				changedAt: new Date(),
+				assigneeId: null, //when we introduce authorization, we will be able to replace null with the requesting user's id
+			},
+		};
+
+		const deletedCase = await Case.findOneAndUpdate(query, updateOperation, {
+			returnDocument: "after",
+			runValidators: true,
 		});
 		if (!deletedCase) {
 			return res.status(404).json({

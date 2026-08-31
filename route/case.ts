@@ -5,6 +5,7 @@ import fileUpload from "../middleware/fileUpload.ts";
 import addCase from "../controller/case/addCase.ts";
 import updateCase from "../controller/case/updateCase.ts";
 import deleteCase from "../controller/case/deleteCase.ts";
+import trackCase from "../controller/case/trackCase.ts";
 import retrieveCase from "../controller/case/retrieveCase.ts";
 import retrieveAllCase from "../controller/case/retrieveAllCase.ts";
 
@@ -57,6 +58,7 @@ const router = express.Router();
 
 router.get("/", retrieveAllCase);
 router.get("/:caseId", retrieveCase);
+router.get("/track/:trackingId", trackCase);
 router.delete("/:caseId", deleteCase);
 router.post("/", fileUpload(options), addCase);
 router.patch("/:caseId", fileUpload(options), updateCase);

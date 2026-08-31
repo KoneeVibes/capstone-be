@@ -20,7 +20,7 @@ const updateCase = async (req: Request, res: Response) => {
 	}
 
 	const allowableStatuses = [
-		"submitted",
+		"payment-validated",
 		"assigned",
 		"accepted",
 		"pending-information",
@@ -41,18 +41,34 @@ const updateCase = async (req: Request, res: Response) => {
 			...(assigneeId !== undefined ? { assigneeId } : {}),
 		};
 
-		const updatedCase = await Case.findOneAndUpdate(
-			query,
-			{ $set: updateData },
-			{
-				returnDocument: "after",
-				runValidators: true,
+		const foundCase = await Case.findOne({ id: caseId });
+		if (!foundCase) {
+			return res.status(404).json({
+				status: "fail",
+				message: "Case not found",
+			});
+		}
+
+		const updateOperation: Record<string, unknown> = {
+			$set: updateData,
+		};
+
+		updateOperation.$push = {
+			statusHistory: {
+				status: status ? status : foundCase?.status,
+				changedAt: new Date(),
+				assigneeId: assigneeId ?? null, //when we introduce authorization, we will be able to replace null with the requesting user's id
 			},
-		);
+		};
+
+		const updatedCase = await Case.findOneAndUpdate(query, updateOperation, {
+			returnDocument: "after",
+			runValidators: true,
+		});
 		if (!updatedCase) {
 			return res.status(404).json({
 				status: "fail",
-				message: "Case not found.",
+				message: "Case failed to update.",
 			});
 		}
 

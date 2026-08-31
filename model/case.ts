@@ -1,9 +1,48 @@
 import { Schema } from "mongoose";
 import appDB from "../db/dbConnect.ts";
 
+const caseStatusHistorySchema = new Schema(
+	{
+		status: {
+			type: String,
+			required: true,
+			enum: [
+				"submitted",
+				"payment-validated",
+				"assigned",
+				"accepted",
+				"pending-information",
+				"under-review",
+				"closed",
+				"suspended",
+			],
+		},
+		changedAt: {
+			type: Date,
+			required: true,
+			default: Date.now,
+		},
+		assigneeId: {
+			type: String,
+			default: null,
+		},
+		note: {
+			type: String,
+			default: null,
+			trim: true,
+		},
+	},
+	{ _id: false },
+);
+
 const caseSchema = new Schema(
 	{
 		id: {
+			type: String,
+			required: true,
+			unique: true,
+		},
+		trackingId: {
 			type: String,
 			required: true,
 			unique: true,
@@ -85,9 +124,10 @@ const caseSchema = new Schema(
 		status: {
 			type: String,
 			required: true,
-			default: "active",
+			default: "submitted",
 			enum: [
 				"submitted",
+				"payment-validated",
 				"assigned",
 				"accepted",
 				"pending-information",
@@ -95,6 +135,10 @@ const caseSchema = new Schema(
 				"closed",
 				"suspended",
 			],
+		},
+		statusHistory: {
+			type: [caseStatusHistorySchema],
+			default: [],
 		},
 	},
 	{ timestamps: true },

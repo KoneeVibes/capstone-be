@@ -1,5 +1,6 @@
 import { v4 as uuidv4 } from "uuid";
 import Case from "../../model/case.ts";
+import { customAlphabet } from "nanoid";
 import Invoice from "../../model/invoice.ts";
 import dbConnect from "../../db/dbConnect.ts";
 import type { Request, Response } from "express";
@@ -111,8 +112,14 @@ const addCase = async (req: Request, res: Response) => {
 		);
 
 		const caseId = uuidv4();
+		const generateTrackingId = customAlphabet(
+			"23456789ABCDEFGHJKLMNPQRSTUVWXYZ",
+			8,
+		);
+		const trackingId = `PI-${generateTrackingId()}`;
 		const newCase = new Case({
 			id: caseId,
+			trackingId,
 			applicantName,
 			applicantEmail,
 			applicantPhone,
@@ -126,7 +133,13 @@ const addCase = async (req: Request, res: Response) => {
 			source,
 			propertySurveyPlan: surveyPlan,
 			propertyTitleDocument: titleDocument,
-			status: "submitted",
+			statusHistory: [
+				{
+					status: "submitted",
+					changedAt: new Date(),
+					note: "Case submitted successfully.",
+				},
+			],
 		});
 		const savedCase = await newCase.save({ session });
 		if (!savedCase) {
@@ -159,7 +172,10 @@ const addCase = async (req: Request, res: Response) => {
 		return res.status(201).json({
 			status: "success",
 			message: "Case successfully added",
-			data: { invoiceId: caseInvoice.id },
+			data: {
+				invoiceId: caseInvoice?.id,
+				trackingId: savedCase?.trackingId,
+			},
 		});
 	} catch (error) {
 		console.error(error);
