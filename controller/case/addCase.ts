@@ -5,10 +5,12 @@ import Invoice from "../../model/invoice.ts";
 import dbConnect from "../../db/dbConnect.ts";
 import type { Request, Response } from "express";
 import LOCATION_RATES from "../../config/location.ts";
-import type { InquiryPurpose } from "../../type/purpose.ts";
+import type { InquiryPurpose } from "../../type/config.ts";
 import createInvoiceItems from "../../helper/createInvoiceItems.ts";
 import validateRequiredFields from "../../validator/fieldValidator.ts";
 import calculateTotalPayable from "../../helper/calculateTotalPayable.ts";
+import sendEmail from "../../util/notification/nodemailer/emailSender.ts";
+import { caseAcknowledgementTemplate } from "../../view/case/caseAcknowledgement.ts";
 
 const addCase = async (req: Request, res: Response) => {
 	const files = req.files;
@@ -167,6 +169,18 @@ const addCase = async (req: Request, res: Response) => {
 				"Failed to generate corresponding case invoice. Please try again.",
 			);
 		}
+
+		const templateConfig = {
+			customerName: applicantName,
+			trackingId,
+		};
+		const html = caseAcknowledgementTemplate(templateConfig);
+		const mailConfig = {
+			email: applicantEmail,
+			html,
+			subject: `Case Submission Confirmed — ${trackingId}`,
+		};
+		await sendEmail(mailConfig);
 
 		await session.commitTransaction();
 		return res.status(201).json({

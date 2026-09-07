@@ -3,7 +3,6 @@ import Case from "../../model/case.ts";
 
 const trackCase = async (req: Request, res: Response) => {
 	const { trackingId } = req.params || {};
-
 	if (!trackingId) {
 		return res.status(400).json({
 			status: "fail",

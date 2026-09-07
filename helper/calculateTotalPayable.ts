@@ -1,4 +1,4 @@
-import type { InquiryPurpose } from "../type/purpose.ts";
+import type { InquiryPurpose } from "../type/config.ts";
 import PURPOSE_MULTIPLIERS from "../config/purposeMultiplier.ts";
 
 function calculateTotalPayable(

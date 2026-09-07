@@ -2,9 +2,11 @@ import isValidString from "../../validator/isValidString.ts";
 import Case from "../../model/case.ts";
 import Invoice from "../../model/invoice.ts";
 import dbConnect from "../../db/dbConnect.ts";
+import sendEmail from "../../util/notification/nodemailer/emailSender.ts";
+import { paymentAcknowledgementTemplate } from "../../view/invoice/paymentAcknowledgement.ts";
 
 const chargeSuccess = async (event: any) => {
-	const { reference } = event || {};
+	const { reference, amount, currency } = event || {};
 
 	if (![reference].every(isValidString)) {
 		return {
@@ -94,6 +96,19 @@ const chargeSuccess = async (event: any) => {
 				message: "Case failed to update.",
 			};
 		}
+
+		const templateConfig = {
+			customerName: foundCase?.applicantName,
+			amount: `${currency}${amount}`,
+			paymentReference: reference,
+		};
+		const html = paymentAcknowledgementTemplate(templateConfig);
+		const mailConfig = {
+			email: foundCase?.applicantEmail,
+			html,
+			subject: `Payment Confirmed — ${reference}`,
+		};
+		await sendEmail(mailConfig);
 
 		await session.commitTransaction();
 		return {

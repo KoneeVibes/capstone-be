@@ -1,4 +1,4 @@
-import type { PaystackEventType } from "../../type/paystack.ts";
+import type { PaystackEventType } from "../../type/webhook.ts";
 import chargeSuccess from "../handler/charge.success.ts";
 
 const dispatch = [

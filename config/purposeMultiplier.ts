@@ -1,4 +1,4 @@
-import type { InquiryPurpose } from "../type/purpose.ts";
+import type { InquiryPurpose } from "../type/config.ts";
 
 export default {
 	"due-diligence": 1,

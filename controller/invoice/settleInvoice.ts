@@ -3,6 +3,7 @@ import Case from "../../model/case.ts";
 import Invoice from "../../model/invoice.ts";
 import dbConnect from "../../db/dbConnect.ts";
 import initializeTransaction from "../../util/payment/paystack/initializeTransaction.ts";
+import nairaToKobo from "../../helper/convertNairaToKobo.ts";
 
 const settleInvoice = async (req: Request, res: Response) => {
 	const { invoiceId } = req.params || {};
@@ -16,9 +17,10 @@ const settleInvoice = async (req: Request, res: Response) => {
 	const session = await dbConnect.startSession();
 	session.startTransaction();
 	try {
-		const foundInvoice = await Invoice.findOne({ id: invoiceId }).session(
-			session,
-		);
+		const foundInvoice = await Invoice.findOne({
+			id: invoiceId,
+			status: { $ne: "paid" },
+		}).session(session);
 		if (!foundInvoice) {
 			await session.abortTransaction();
 			return res.status(404).json({
@@ -40,7 +42,7 @@ const settleInvoice = async (req: Request, res: Response) => {
 
 		const transactionParams = {
 			email: foundCase?.applicantEmail,
-			amount: foundInvoice?.totalPayable,
+			amount: nairaToKobo(foundInvoice?.totalPayable),
 		};
 		const transaction = await initializeTransaction(transactionParams);
 		if (!transaction.status) {

@@ -50,14 +50,10 @@ const invoiceSchema = new Schema(
 		transactionAccessCode: {
 			type: String,
 			default: null,
-			unique: true,
-			sparse: true,
 		},
 		transactionReference: {
 			type: String,
 			default: null,
-			unique: true,
-			sparse: true,
 		},
 		totalPayable: {
 			type: Number,
@@ -79,6 +75,26 @@ const invoiceSchema = new Schema(
 		},
 	},
 	{ timestamps: true },
+);
+
+invoiceSchema.index(
+	{ transactionAccessCode: 1 },
+	{
+		unique: true,
+		partialFilterExpression: {
+			transactionAccessCode: { $type: "string" },
+		},
+	},
+);
+
+invoiceSchema.index(
+	{ transactionReference: 1 },
+	{
+		unique: true,
+		partialFilterExpression: {
+			transactionReference: { $type: "string" },
+		},
+	},
 );
 
 invoiceSchema.pre("validate", function () {
