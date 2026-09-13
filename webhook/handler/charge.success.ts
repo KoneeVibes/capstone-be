@@ -2,6 +2,7 @@ import isValidString from "../../validator/isValidString.ts";
 import Case from "../../model/case.ts";
 import Invoice from "../../model/invoice.ts";
 import dbConnect from "../../db/dbConnect.ts";
+import koboToNaira from "../../helper/convertKoboToNaira.ts";
 import sendEmail from "../../util/notification/nodemailer/emailSender.ts";
 import { paymentAcknowledgementTemplate } from "../../view/invoice/paymentAcknowledgement.ts";
 
@@ -99,7 +100,7 @@ const chargeSuccess = async (event: any) => {
 
 		const templateConfig = {
 			customerName: foundCase?.applicantName,
-			amount: `${currency}${amount}`,
+			amount: `${currency}${koboToNaira(amount)}`,
 			paymentReference: reference,
 		};
 		const html = paymentAcknowledgementTemplate(templateConfig);
