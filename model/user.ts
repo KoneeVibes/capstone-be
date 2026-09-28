@@ -11,7 +11,7 @@ const userSchema = new Schema(
 		},
 		firstName: {
 			type: String,
-			required: true,
+			default: null,
 		},
 		middleName: {
 			type: String,
@@ -19,7 +19,7 @@ const userSchema = new Schema(
 		},
 		lastName: {
 			type: String,
-			required: true,
+			default: null,
 		},
 		email: {
 			type: String,
@@ -36,8 +36,8 @@ const userSchema = new Schema(
 		},
 		password: {
 			type: String,
-			required: true,
 			select: false,
+			default: null,
 		},
 		type: {
 			type: String,
@@ -59,7 +59,7 @@ const userSchema = new Schema(
 		status: {
 			type: String,
 			required: true,
-			default: "active",
+			default: "inactive",
 			enum: ["active", "inactive"],
 		},
 		passwordChanged: {

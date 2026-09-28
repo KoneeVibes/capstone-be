@@ -2,6 +2,8 @@ import express from "express";
 import type { Request } from "express";
 import type { Field as MulterField } from "multer";
 import fileUpload from "../middleware/fileUpload.ts";
+import isPermitted from "../middleware/permission.ts";
+import isAuthorized from "../middleware/authorization.ts";
 import addStaff from "../controller/staff/addStaff.ts";
 import updateStaff from "../controller/staff/updateStaff.ts";
 import deleteStaff from "../controller/staff/deleteStaff.ts";
@@ -38,11 +40,25 @@ const options = {
 } as FileUploadConfig;
 
 const router = express.Router();
+const module = "Staff";
 
-router.get("/", retrieveAllStaff);
-router.get("/:userId", retrieveStaff);
-router.delete("/:userId", deleteStaff);
-router.post("/", fileUpload(options), addStaff);
-router.put("/:userId", fileUpload(options), updateStaff);
+// routes open to only authenticated user types and permitted user roles
+router.get("/", isAuthorized, isPermitted(module), retrieveAllStaff);
+router.get("/:userId", isAuthorized, isPermitted(module), retrieveStaff);
+router.delete("/:userId", isAuthorized, isPermitted(module), deleteStaff);
+router.post(
+	"/",
+	isAuthorized,
+	isPermitted(module),
+	fileUpload(options),
+	addStaff,
+);
+router.put(
+	"/:userId",
+	isAuthorized,
+	isPermitted(module),
+	fileUpload(options),
+	updateStaff,
+);
 
 export default router;

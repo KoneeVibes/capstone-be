@@ -86,7 +86,9 @@
  *     tags:
  *       - Staff
  *     summary: Add a staff member
- *     description: Creates a staff member with a generated ID and default password.
+ *     description: "Requires authentication and Staff permission. Available only to super-admin and admin roles."
+ *     security:
+ *       - BearerAuth: []
  *     requestBody:
  *       required: true
  *       content:
@@ -119,29 +121,33 @@
  *                 example: "+2348012345678"
  *               role:
  *                 type: string
- *                 enum:
- *                   - admin
- *                   - manager
- *                   - regular
+ *                 enum: [admin, manager, regular]
  *                 example: manager
  *               avatar:
  *                 type: string
  *                 format: binary
- *                 description: Optional profile image. Accepted formats are JPG, JPEG, and PNG.
+ *                 description: Optional JPG, JPEG, or PNG profile image.
  *     responses:
  *       201:
- *         description: Staff successfully added
+ *         description: Staff member successfully added.
  *       400:
- *         description: Required fields are missing or invalid
+ *         description: Required fields are missing or invalid.
+ *       401:
+ *         description: Authentication is missing, invalid, expired, or blacklisted.
+ *       403:
+ *         description: Only super-admin and admin may add staff members.
  *       409:
- *         description: A staff member with this email already exists
+ *         description: A staff member with this email already exists.
  *       500:
- *         description: Server error while creating staff
+ *         description: Server error while creating staff.
  *
  *   get:
  *     tags:
  *       - Staff
  *     summary: Retrieve all staff members
+ *     description: "Requires authentication and Staff permission. Available only to super-admin, admin, and manager roles."
+ *     security:
+ *       - BearerAuth: []
  *     parameters:
  *       - in: query
  *         name: page
@@ -149,17 +155,15 @@
  *           type: integer
  *           minimum: 1
  *           default: 1
- *         description: Page number.
  *       - in: query
  *         name: perPage
  *         schema:
  *           type: integer
  *           minimum: 1
  *           default: 10
- *         description: Number of staff members per page.
  *     responses:
  *       200:
- *         description: Staff members retrieved successfully
+ *         description: Staff members retrieved successfully.
  *         content:
  *           application/json:
  *             schema:
@@ -170,30 +174,20 @@
  *                   example: success
  *                 message:
  *                   type: string
- *                   example: success
  *                 data:
  *                   type: array
  *                   items:
  *                     $ref: "#/components/schemas/Staff"
  *                 meta:
  *                   type: object
- *                   properties:
- *                     page:
- *                       type: integer
- *                       example: 1
- *                     perPage:
- *                       type: integer
- *                       example: 10
- *                     total:
- *                       type: integer
- *                       example: 25
- *                     totalPages:
- *                       type: integer
- *                       example: 3
+ *       401:
+ *         description: Authentication is missing, invalid, expired, or blacklisted.
+ *       403:
+ *         description: Only super-admin, admin, and manager may retrieve all staff members.
  *       404:
- *         description: No staff members found
+ *         description: No staff members found.
  *       500:
- *         description: Server error while retrieving staff members
+ *         description: Server error while retrieving staff members.
  */
 
 /**
@@ -203,6 +197,9 @@
  *     tags:
  *       - Staff
  *     summary: Retrieve one staff member
+ *     description: "Requires authentication and Staff permission. Super-admin, admin, and manager may retrieve any staff profile. A regular staff user may retrieve only their own profile."
+ *     security:
+ *       - BearerAuth: []
  *     parameters:
  *       - in: path
  *         name: userId
@@ -213,7 +210,7 @@
  *         description: The staff member application ID.
  *     responses:
  *       200:
- *         description: Staff member retrieved successfully
+ *         description: Staff member retrieved successfully.
  *         content:
  *           application/json:
  *             schema:
@@ -224,19 +221,24 @@
  *                   example: success
  *                 message:
  *                   type: string
- *                   example: success
  *                 data:
  *                   $ref: "#/components/schemas/Staff"
+ *       401:
+ *         description: Authentication is missing, invalid, expired, or blacklisted.
+ *       403:
+ *         description: A regular staff user may retrieve only their own profile.
  *       404:
- *         description: Staff member not found
+ *         description: Staff member not found.
  *       500:
- *         description: Server error while retrieving the staff member
+ *         description: Server error while retrieving the staff member.
  *
  *   put:
  *     tags:
  *       - Staff
  *     summary: Update a staff member
- *     description: Updates only the fields supplied in the request. An existing avatar is retained unless a new image is uploaded.
+ *     description: "Requires authentication and Staff permission. Super-admin, admin, and manager may update any staff profile. A regular staff user may update only their own profile."
+ *     security:
+ *       - BearerAuth: []
  *     parameters:
  *       - in: path
  *         name: userId
@@ -271,18 +273,15 @@
  *                 example: "+2348012345678"
  *               role:
  *                 type: string
- *                 enum:
- *                   - admin
- *                   - manager
- *                   - regular
+ *                 enum: [admin, manager, regular]
  *                 example: manager
  *               avatar:
  *                 type: string
  *                 format: binary
- *                 description: Optional replacement profile image. Accepted formats are JPG, JPEG, and PNG.
+ *                 description: Optional replacement JPG, JPEG, or PNG profile image.
  *     responses:
  *       200:
- *         description: Staff member updated successfully
+ *         description: Staff member updated successfully.
  *         content:
  *           application/json:
  *             schema:
@@ -293,21 +292,26 @@
  *                   example: success
  *                 message:
  *                   type: string
- *                   example: Staff member updated successfully.
  *                 data:
  *                   $ref: "#/components/schemas/Staff"
  *       400:
- *         description: No update fields were provided
+ *         description: No update fields were provided or a supplied field is invalid.
+ *       401:
+ *         description: Authentication is missing, invalid, expired, or blacklisted.
+ *       403:
+ *         description: A regular staff user may update only their own profile.
  *       404:
- *         description: Staff member not found
+ *         description: Staff member not found.
  *       500:
- *         description: Server error while updating the staff member
+ *         description: Server error while updating the staff member.
  *
  *   delete:
  *     tags:
  *       - Staff
  *     summary: Deactivate a staff member
- *     description: Soft-deletes a staff member by setting their status to inactive.
+ *     description: "Requires authentication and Staff permission. Available only to the super-admin role. Soft-deletes the account by setting its status to inactive."
+ *     security:
+ *       - BearerAuth: []
  *     parameters:
  *       - in: path
  *         name: userId
@@ -318,7 +322,7 @@
  *         description: The staff member application ID.
  *     responses:
  *       200:
- *         description: Staff member deactivated successfully
+ *         description: Staff member deactivated successfully.
  *         content:
  *           application/json:
  *             schema:
@@ -329,11 +333,14 @@
  *                   example: success
  *                 message:
  *                   type: string
- *                   example: Staff member deleted successfully.
  *                 data:
  *                   $ref: "#/components/schemas/Staff"
+ *       401:
+ *         description: Authentication is missing, invalid, expired, or blacklisted.
+ *       403:
+ *         description: Only a super-admin may deactivate staff members.
  *       404:
- *         description: Staff member not found
+ *         description: Staff member not found.
  *       500:
- *         description: Server error while deactivating the staff member
+ *         description: Server error while deactivating the staff member.
  */

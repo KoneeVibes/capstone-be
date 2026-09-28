@@ -20,15 +20,15 @@ const options = {
 			{ url: "http://localhost:9001" },
 			{ url: "https://capstone-be-1hri.onrender.com" },
 		],
-		// components: {
-		// 	securitySchemes: {
-		// 		BearerAuth: {
-		// 			type: "http",
-		// 			scheme: "bearer",
-		// 			bearerFormat: "JWT",
-		// 		},
-		// 	},
-		// },
+		components: {
+			securitySchemes: {
+				BearerAuth: {
+					type: "http",
+					scheme: "bearer",
+					bearerFormat: "JWT",
+				},
+			},
+		},
 		// security: [{ BearerAuth: [] }],
 	},
 	apis: [`${docsDirectory}/**/*.${fileExtension}`],

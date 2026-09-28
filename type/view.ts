@@ -8,3 +8,15 @@ export type paymentAcknowledgement = {
 	amount: string;
 	paymentReference: string;
 };
+
+export type accountCreationNotification = {
+	customerEmail: string;
+	customerName: string;
+	otp: string;
+	autoCreation: boolean;
+};
+
+export type passwordResetNotification = {
+	customerName: string;
+	otp: string;
+};

@@ -2,6 +2,11 @@ import type { Request, Response } from "express";
 import Case from "../../model/case.ts";
 
 const retrieveAllCase = async (req: Request, res: Response) => {
+	const currentUser = (
+		req as Request & {
+			user?: { type: string; email: string };
+		}
+	).user;
 	const { filter, page, perPage } = req.query || {};
 
 	try {
@@ -28,7 +33,13 @@ const retrieveAllCase = async (req: Request, res: Response) => {
 		const statusFilter = {
 			$in: validStatuses.length ? validStatuses : allowableStatuses,
 		};
-		const query = { status: statusFilter };
+		const query = {
+			status: statusFilter,
+			...(currentUser &&
+			["registered-client", "guest-client"].includes(currentUser.type)
+				? { applicantEmail: currentUser.email }
+				: {}),
+		};
 
 		const pageNumber = Math.max(Number(page) || 1, 1);
 		const limit = Math.max(Number(perPage) || 10, 1);

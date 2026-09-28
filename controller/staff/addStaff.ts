@@ -43,6 +43,7 @@ const addStaff = async (req: Request, res: Response) => {
 			avatar: path,
 			type: "staff",
 			password: defaultPIN,
+			status: "active",
 		});
 		const savedStaff = await staff.save();
 		if (!savedStaff) {

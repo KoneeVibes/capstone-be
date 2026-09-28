@@ -2,6 +2,8 @@ import express from "express";
 import type { Request } from "express";
 import type { Field as MulterField } from "multer";
 import fileUpload from "../middleware/fileUpload.ts";
+import isPermitted from "../middleware/permission.ts";
+import isAuthorized from "../middleware/authorization.ts";
 import addCase from "../controller/case/addCase.ts";
 import updateCase from "../controller/case/updateCase.ts";
 import deleteCase from "../controller/case/deleteCase.ts";
@@ -55,12 +57,24 @@ const options = {
 } as FileUploadConfig;
 
 const router = express.Router();
+const module = "Case";
 
-router.get("/", retrieveAllCase);
-router.get("/:caseId", retrieveCase);
+// routes open to general public
 router.get("/track/:trackingId", trackCase);
-router.delete("/:caseId", deleteCase);
 router.post("/", fileUpload(options), addCase);
-router.patch("/:caseId", fileUpload(options), updateCase);
+
+// routes open to only authenticated user types
+router.get("/", isAuthorized, retrieveAllCase);
+router.get("/:caseId", isAuthorized, retrieveCase);
+
+// routes open to only authenticated user types and permitted user roles
+router.patch(
+	"/:caseId",
+	isAuthorized,
+	isPermitted(module),
+	fileUpload(options),
+	updateCase,
+);
+router.delete("/:caseId", isAuthorized, isPermitted(module), deleteCase);
 
 export default router;

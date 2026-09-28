@@ -210,7 +210,7 @@
  *     tags:
  *       - Case
  *     summary: Create a property inquiry case
- *     description: Creates a case, uploads supporting documents, generates an invoice, and returns a public tracking ID.
+ *     description: Public endpoint. Creates a case, uploads supporting documents, generates an invoice, and returns a public tracking ID.
  *     requestBody:
  *       required: true
  *       content:
@@ -253,27 +253,19 @@
  *                 example: Ikeja
  *               propertyAddress:
  *                 type: string
- *                 example: "12 Allen Avenue, Ikeja, Lagos"
+ *                 example: 12 Allen Avenue, Ikeja, Lagos
  *               propertyType:
  *                 type: string
- *                 enum:
- *                   - land
- *                   - building
- *                   - commercial
+ *                 enum: [land, building, commercial]
  *                 example: land
  *               inquiryPurpose:
  *                 type: array
- *                 description: Display values; the controller normalizes these before storage.
  *                 items:
  *                   type: string
- *                   enum:
- *                     - Due Diligence
- *                     - Physical Inspection
- *                 example:
- *                   - Due Diligence
+ *                   enum: [Due Diligence, Physical Inspection]
+ *                 example: [Due Diligence]
  *               propertyTitleType:
  *                 type: array
- *                 description: Display values; the controller normalizes these before storage.
  *                 items:
  *                   type: string
  *                   enum:
@@ -282,14 +274,10 @@
  *                     - Deed of Assignment
  *                     - Power of Attorney
  *                     - Not sure / seller hasn't said
- *                 example:
- *                   - Certificate of Occupancy
+ *                 example: [Certificate of Occupancy]
  *               source:
  *                 type: string
- *                 enum:
- *                   - website
- *                   - mobile-app
- *                   - third-party-api
+ *                 enum: [website, mobile-app, third-party-api]
  *                 example: website
  *               propertySurveyPlan:
  *                 type: array
@@ -299,45 +287,27 @@
  *                   format: binary
  *               propertyTitleDocument:
  *                 type: array
- *                 description: Property title-document files. JPG, JPEG, PNG, and PDF are accepted.
+ *                 description: Title-document files. JPG, JPEG, PNG, and PDF are accepted.
  *                 items:
  *                   type: string
  *                   format: binary
  *     responses:
  *       201:
- *         description: Case successfully created and invoice generated
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 status:
- *                   type: string
- *                   example: success
- *                 message:
- *                   type: string
- *                   example: Case successfully added
- *                 data:
- *                   type: object
- *                   properties:
- *                     invoiceId:
- *                       type: string
- *                       format: uuid
- *                       example: "8c7ea90d-1e0e-4ceb-8882-43025863d3a2"
- *                     trackingId:
- *                       type: string
- *                       example: PI-8K4M2Q
+ *         description: Case successfully created and invoice generated.
  *       400:
- *         description: Required fields are missing or invalid
+ *         description: Required fields are missing or invalid.
  *       404:
- *         description: No price is configured for the selected location
+ *         description: No price is configured for the selected location.
  *       500:
- *         description: Server error while creating the case or generating its invoice
+ *         description: Server error while creating the case or generating its invoice.
  *
  *   get:
  *     tags:
  *       - Case
- *     summary: Retrieve all cases
+ *     summary: Retrieve cases
+ *     description: "Requires authentication. Staff users can retrieve all cases permitted by the controller query. Registered-client and guest-client users receive only cases scoped to their email address."
+ *     security:
+ *       - BearerAuth: []
  *     parameters:
  *       - in: query
  *         name: filter
@@ -363,17 +333,15 @@
  *           type: integer
  *           minimum: 1
  *           default: 1
- *         description: Page number.
  *       - in: query
  *         name: perPage
  *         schema:
  *           type: integer
  *           minimum: 1
  *           default: 10
- *         description: Number of cases per page.
  *     responses:
  *       200:
- *         description: Cases retrieved successfully
+ *         description: Cases retrieved successfully.
  *         content:
  *           application/json:
  *             schema:
@@ -384,30 +352,18 @@
  *                   example: success
  *                 message:
  *                   type: string
- *                   example: success
  *                 data:
  *                   type: array
  *                   items:
  *                     $ref: "#/components/schemas/Case"
  *                 meta:
  *                   type: object
- *                   properties:
- *                     page:
- *                       type: integer
- *                       example: 1
- *                     perPage:
- *                       type: integer
- *                       example: 10
- *                     total:
- *                       type: integer
- *                       example: 25
- *                     totalPages:
- *                       type: integer
- *                       example: 3
+ *       401:
+ *         description: Authentication is missing, invalid, expired, or blacklisted.
  *       404:
- *         description: No cases found
+ *         description: No cases found.
  *       500:
- *         description: Server error while retrieving cases
+ *         description: Server error while retrieving cases.
  */
 
 /**
@@ -417,7 +373,7 @@
  *     tags:
  *       - Case
  *     summary: Track a case by tracking ID
- *     description: Retrieves public tracking details without exposing applicant data.
+ *     description: Public endpoint. Retrieves tracking details without exposing applicant data.
  *     parameters:
  *       - in: path
  *         name: trackingId
@@ -428,7 +384,7 @@
  *         description: The public case tracking ID.
  *     responses:
  *       200:
- *         description: Case tracking details retrieved successfully
+ *         description: Case tracking details retrieved successfully.
  *         content:
  *           application/json:
  *             schema:
@@ -439,15 +395,14 @@
  *                   example: success
  *                 message:
  *                   type: string
- *                   example: Case tracking details retrieved successfully.
  *                 data:
  *                   $ref: "#/components/schemas/CaseTracking"
  *       400:
- *         description: Tracking ID was not supplied
+ *         description: Tracking ID was not supplied.
  *       404:
- *         description: Case not found
+ *         description: Case not found.
  *       500:
- *         description: Server error while retrieving case tracking details
+ *         description: Server error while retrieving tracking details.
  */
 
 /**
@@ -457,6 +412,9 @@
  *     tags:
  *       - Case
  *     summary: Retrieve one case
+ *     description: "Requires authentication. Staff users may retrieve a case permitted by the controller. Registered-client and guest-client users may retrieve only cases scoped to their email address."
+ *     security:
+ *       - BearerAuth: []
  *     parameters:
  *       - in: path
  *         name: caseId
@@ -464,10 +422,10 @@
  *         schema:
  *           type: string
  *           format: uuid
- *         description: The case ID.
+ *         description: The case application ID.
  *     responses:
  *       200:
- *         description: Case retrieved successfully
+ *         description: Case retrieved successfully.
  *         content:
  *           application/json:
  *             schema:
@@ -478,21 +436,22 @@
  *                   example: success
  *                 message:
  *                   type: string
- *                   example: success
  *                 data:
  *                   $ref: "#/components/schemas/Case"
- *       400:
- *         description: Case ID was not supplied
+ *       401:
+ *         description: Authentication is missing, invalid, expired, or blacklisted.
  *       404:
- *         description: Case not found
+ *         description: Case not found or is outside the authenticated client's scope.
  *       500:
- *         description: Server error while retrieving the case
+ *         description: Server error while retrieving the case.
  *
  *   patch:
  *     tags:
  *       - Case
- *     summary: Update a case status or assignee
- *     description: Updates the supplied status and/or assigned staff member for a case.
+ *     summary: Update a case
+ *     description: "Requires authentication and Case permission. Available only to permitted staff roles: super-admin, admin, manager, and regular."
+ *     security:
+ *       - BearerAuth: []
  *     parameters:
  *       - in: path
  *         name: caseId
@@ -500,7 +459,6 @@
  *         schema:
  *           type: string
  *           format: uuid
- *         description: The case ID.
  *     requestBody:
  *       required: true
  *       content:
@@ -523,10 +481,10 @@
  *                 type: string
  *                 format: uuid
  *                 nullable: true
- *                 example: "31eb6fe4-af71-42a1-8522-788501201e22"
+ *                 example: 31eb6fe4-af71-42a1-8522-788501201e22
  *     responses:
  *       200:
- *         description: Case updated successfully
+ *         description: Case updated successfully.
  *         content:
  *           application/json:
  *             schema:
@@ -537,21 +495,26 @@
  *                   example: success
  *                 message:
  *                   type: string
- *                   example: Case updated successfully.
  *                 data:
  *                   $ref: "#/components/schemas/Case"
  *       400:
- *         description: Case ID, status, or assignee is missing or invalid
+ *         description: Case ID, status, or assignee is missing or invalid.
+ *       401:
+ *         description: Authentication is missing, invalid, expired, or blacklisted.
+ *       403:
+ *         description: The authenticated user does not have permission to update cases.
  *       404:
- *         description: Case not found
+ *         description: Case not found.
  *       500:
- *         description: Server error while updating the case
+ *         description: Server error while updating the case.
  *
  *   delete:
  *     tags:
  *       - Case
  *     summary: Suspend a case
- *     description: Soft-deletes a case by changing its status to suspended.
+ *     description: "Requires authentication and Case permission. Available only to the super-admin role."
+ *     security:
+ *       - BearerAuth: []
  *     parameters:
  *       - in: path
  *         name: caseId
@@ -559,10 +522,9 @@
  *         schema:
  *           type: string
  *           format: uuid
- *         description: The case ID.
  *     responses:
  *       200:
- *         description: Case suspended successfully
+ *         description: Case suspended successfully.
  *         content:
  *           application/json:
  *             schema:
@@ -573,13 +535,14 @@
  *                   example: success
  *                 message:
  *                   type: string
- *                   example: Case deleted successfully.
  *                 data:
  *                   $ref: "#/components/schemas/Case"
- *       400:
- *         description: Case ID was not supplied
+ *       401:
+ *         description: Authentication is missing, invalid, expired, or blacklisted.
+ *       403:
+ *         description: Only a super-admin may suspend a case.
  *       404:
- *         description: Case not found
+ *         description: Case not found.
  *       500:
- *         description: Server error while suspending the case
+ *         description: Server error while suspending the case.
  */

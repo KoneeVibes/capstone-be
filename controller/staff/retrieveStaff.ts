@@ -2,11 +2,27 @@ import type { Request, Response } from "express";
 import User from "../../model/user.ts";
 
 const retrieveStaff = async (req: Request, res: Response) => {
+	const currentUser = (
+		req as Request & {
+			user?: { id: string; role: string };
+		}
+	).user;
 	const { userId } = req.params || {};
 	if (!userId) {
 		return res.status(400).json({
 			status: "fail",
 			message: "User Id not found, Cannot Proceed",
+		});
+	}
+
+	const wideScopedRoles = ["super-admin", "admin", "manager"];
+	if (
+		userId !== currentUser?.id &&
+		!wideScopedRoles.includes(currentUser?.role ?? "")
+	) {
+		return res.status(403).json({
+			status: "fail",
+			message: "You are not permitted to access or update this user.",
 		});
 	}
 

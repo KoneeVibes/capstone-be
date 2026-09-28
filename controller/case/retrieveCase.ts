@@ -3,6 +3,11 @@ import Case from "../../model/case.ts";
 
 const retrieveCase = async (req: Request, res: Response) => {
 	const { caseId } = req.params || {};
+	const currentUser = (
+		req as Request & {
+			user?: { type: string; email: string };
+		}
+	).user;
 	if (!caseId) {
 		return res.status(400).json({
 			status: "fail",
@@ -20,7 +25,15 @@ const retrieveCase = async (req: Request, res: Response) => {
 			"under-review",
 			"closed",
 		] as const;
-		const query = { id: caseId, status: { $in: allowableStatuses } };
+
+		const query = {
+			id: caseId,
+			status: { $in: allowableStatuses },
+			...(currentUser &&
+			["registered-client", "guest-client"].includes(currentUser.type)
+				? { applicantEmail: currentUser.email }
+				: {}),
+		};
 
 		const caseDetail = await Case.findOne(query);
 		if (!caseDetail) {

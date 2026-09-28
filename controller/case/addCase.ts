@@ -1,5 +1,9 @@
+import bcrypt from "bcrypt";
+import crypto from "crypto";
 import { v4 as uuidv4 } from "uuid";
+import OTP from "../../model/otp.ts";
 import Case from "../../model/case.ts";
+import GuestClient from "../../model/user.ts";
 import { customAlphabet } from "nanoid";
 import Invoice from "../../model/invoice.ts";
 import dbConnect from "../../db/dbConnect.ts";
@@ -11,6 +15,7 @@ import validateRequiredFields from "../../validator/fieldValidator.ts";
 import calculateTotalPayable from "../../helper/calculateTotalPayable.ts";
 import sendEmail from "../../util/notification/nodemailer/emailSender.ts";
 import { caseAcknowledgementTemplate } from "../../view/case/caseAcknowledgement.ts";
+import { accountCreationNotificationTemplate } from "../../view/authentication/accountCreationNotification.ts";
 
 const addCase = async (req: Request, res: Response) => {
 	const files = req.files;
@@ -34,6 +39,7 @@ const addCase = async (req: Request, res: Response) => {
 		inquiryPurpose,
 		propertyTitleType,
 		source,
+		createAccount,
 	} = req.body;
 
 	const validationResult = validateRequiredFields({
@@ -168,6 +174,42 @@ const addCase = async (req: Request, res: Response) => {
 			throw new Error(
 				"Failed to generate corresponding case invoice. Please try again.",
 			);
+		}
+
+		if (createAccount === "true") {
+			const clientId = uuidv4();
+			const client = new GuestClient({
+				id: clientId,
+				email: applicantEmail,
+				type: "guest-client",
+			});
+			await client.save({ session });
+
+			const randomSixDigits = crypto.randomInt(100000, 999999).toString();
+			const hashedOTP = await bcrypt.hash(randomSixDigits, 10);
+			const otpId = uuidv4();
+			const otp = new OTP({
+				id: otpId,
+				requester: applicantEmail,
+				type: "sign-up",
+				password: hashedOTP,
+				expiresAt: new Date(Date.now() + 10 * 60 * 1000), // 10 minutes
+			});
+			await otp.save({ session });
+
+			const templateConfig = {
+				customerEmail: applicantEmail,
+				customerName: `${applicantName}`,
+				otp: randomSixDigits,
+				autoCreation: true,
+			};
+			const html = accountCreationNotificationTemplate(templateConfig);
+			const mailConfig = {
+				email: applicantEmail,
+				html,
+				subject: `Activate Your PropertyIntel Account — OTP`,
+			};
+			await sendEmail(mailConfig);
 		}
 
 		const templateConfig = {

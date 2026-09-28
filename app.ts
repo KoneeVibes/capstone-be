@@ -9,6 +9,7 @@ import staffRoutes from "./route/staff.ts";
 import caseRoutes from "./route/case.ts";
 import miscRoutes from "./route/misc.ts";
 import invoiceRoutes from "./route/invoice.ts";
+import authRoutes from "./route/authentication.ts";
 import webhook from "./route/webhook.ts";
 
 // app instance
@@ -29,6 +30,7 @@ app.use("/api-docs", swaggerUI.serve, swaggerUI.setup(swaggerSpec));
 app.use("/api/v1/webhook", webhook);
 
 // api routes:
+app.use("/api/v1/auth", authRoutes);
 app.use("/api/v1/staff", staffRoutes);
 app.use("/api/v1/case", caseRoutes);
 app.use("/api/v1/misc", miscRoutes);
