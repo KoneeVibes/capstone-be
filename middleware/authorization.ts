@@ -37,7 +37,7 @@ export default async (
 		if (!secretKey) {
 			res.status(500).json({
 				status: "fail",
-				message: "Paystack secret key is not configured.",
+				message: "JWT secret key is not configured.",
 			});
 			return;
 		}
