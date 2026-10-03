@@ -13,7 +13,7 @@ import type { InquiryPurpose } from "../../type/config.ts";
 import createInvoiceItems from "../../helper/createInvoiceItems.ts";
 import validateRequiredFields from "../../validator/fieldValidator.ts";
 import calculateTotalPayable from "../../helper/calculateTotalPayable.ts";
-import sendEmail from "../../util/notification/nodemailer/emailSender.ts";
+import sendEmail from "../../util/notification/resend/emailSender.ts";
 import { caseAcknowledgementTemplate } from "../../view/case/caseAcknowledgement.ts";
 import { accountCreationNotificationTemplate } from "../../view/authentication/accountCreationNotification.ts";
 

@@ -4,7 +4,7 @@ import OTP from "../../model/otp.ts";
 import { v4 as uuidv4 } from "uuid";
 import bcrypt from "bcrypt";
 import crypto from "crypto";
-import sendEmail from "../../util/notification/nodemailer/emailSender.ts";
+import sendEmail from "../../util/notification/resend/emailSender.ts";
 import { forgotPasswordSupportTemplate } from "../../view/authentication/forgotPasswordSupport.ts";
 
 const forgotPassword = async (req: Request, res: Response) => {

@@ -3,7 +3,7 @@ import Case from "../../model/case.ts";
 import Invoice from "../../model/invoice.ts";
 import dbConnect from "../../db/dbConnect.ts";
 import koboToNaira from "../../helper/convertKoboToNaira.ts";
-import sendEmail from "../../util/notification/nodemailer/emailSender.ts";
+import sendEmail from "../../util/notification/resend/emailSender.ts";
 import { paymentAcknowledgementTemplate } from "../../view/invoice/paymentAcknowledgement.ts";
 
 const chargeSuccess = async (event: any) => {

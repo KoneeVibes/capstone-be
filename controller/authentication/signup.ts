@@ -7,7 +7,7 @@ import { v4 as uuidv4 } from "uuid";
 import dbConnect from "../../db/dbConnect.ts";
 import validateRequiredFields from "../../validator/fieldValidator.ts";
 import isValidString from "../../validator/isValidString.ts";
-import sendEmail from "../../util/notification/nodemailer/emailSender.ts";
+import sendEmail from "../../util/notification/resend/emailSender.ts";
 import { accountCreationNotificationTemplate } from "../../view/authentication/accountCreationNotification.ts";
 
 const signUpUser = async (req: Request, res: Response) => {
