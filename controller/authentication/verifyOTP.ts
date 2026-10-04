@@ -37,7 +37,7 @@ const verifyOTP = async (req: Request, res: Response) => {
 	try {
 		const foundUser = await User.findOne({
 			email: email,
-			type: { $in: ["guest-client", "registered-client"] },
+			type: { $in: ["staff", "guest-client", "registered-client"] },
 		}).session(session);
 		if (!foundUser) {
 			await session.abortTransaction();
