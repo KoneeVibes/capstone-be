@@ -106,8 +106,6 @@ const signUpUser = async (req: Request, res: Response) => {
 			});
 		}
 
-		const saltRounds = 10;
-		const hashedPassword = await bcrypt.hash(password, saltRounds);
 		const clientId = uuidv4();
 		const client = new RegisteredClient({
 			id: clientId,
@@ -117,7 +115,7 @@ const signUpUser = async (req: Request, res: Response) => {
 			email,
 			phone,
 			organization,
-			password: hashedPassword,
+			password,
 			type: "registered-client",
 		});
 		await client.save({ session });

@@ -113,11 +113,11 @@ const verifyOTP = async (req: Request, res: Response) => {
 				foundUser.firstName = user.firstName;
 				foundUser.middleName = user.middleName || null;
 				foundUser.lastName = user.lastName;
-				foundUser.password = await bcrypt.hash(user.password, 10);
+				foundUser.password = user.password;
 			}
 		}
 		if (otpType === "password-reset") {
-			foundUser.password = await bcrypt.hash(user.password, 10);
+			foundUser.password = user.password;
 		}
 		await foundUser.save({ session });
 
