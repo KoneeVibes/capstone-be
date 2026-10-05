@@ -50,7 +50,7 @@ export default async (
 			});
 			return;
 		}
-		const user = await User.findById(decodedToken.id);
+		const user = await User.findOne({ id: decodedToken.id });
 		if (!user) {
 			res.status(404).json({
 				status: "fail",

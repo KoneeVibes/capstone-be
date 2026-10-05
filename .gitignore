@@ -17,3 +17,5 @@ _book
 
 # dotenv environment variable files
 .env*
+
+script

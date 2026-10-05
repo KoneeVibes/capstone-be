@@ -34,7 +34,7 @@ const signInUser = async (req: Request, res: Response) => {
 				}
 				const accessToken = jwt.sign(
 					{
-						id: user._id,
+						id: user.id,
 						type: user.type,
 					},
 					secretKey,
