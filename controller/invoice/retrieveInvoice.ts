@@ -2,15 +2,18 @@ import type { Request, Response } from "express";
 import Invoice from "../../model/invoice.ts";
 
 const retrieveInvoice = async (req: Request, res: Response) => {
-	const { invoiceId } = req.params || {};
-	if (!invoiceId) {
+	const { id } = req.params || {};
+	console.log(id);
+	if (!id) {
 		return res.status(400).json({
 			status: "fail",
 			message: "Invoice Id not found, Cannot Proceed",
 		});
 	}
 	try {
-		const invoice = await Invoice.findOne({ id: invoiceId });
+		const invoice = await Invoice.findOne({
+			$or: [{ caseId: id }, { id }],
+		});
 		if (!invoice) {
 			return res.status(404).json({
 				status: "success",

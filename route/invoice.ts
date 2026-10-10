@@ -4,7 +4,7 @@ import settleInvoice from "../controller/invoice/settleInvoice.ts";
 
 const router = express.Router();
 
-router.get("/:invoiceId", retrieveInvoice);
+router.get("/:id", retrieveInvoice);
 router.post("/settle/:invoiceId", settleInvoice);
 
 export default router;
