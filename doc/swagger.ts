@@ -29,7 +29,6 @@ const options = {
 				},
 			},
 		},
-		// security: [{ BearerAuth: [] }],
 	},
 	apis: [`${docsDirectory}/**/*.${fileExtension}`],
 };

@@ -10,6 +10,7 @@ import deleteCase from "../controller/case/deleteCase.ts";
 import trackCase from "../controller/case/trackCase.ts";
 import retrieveCase from "../controller/case/retrieveCase.ts";
 import retrieveAllCase from "../controller/case/retrieveAllCase.ts";
+import submitCaseReport from "../controller/case/submitReport.ts";
 
 interface FileFilterCallback {
 	(error: Error | null, acceptFile?: boolean): void;
@@ -27,7 +28,7 @@ interface FileUploadConfig {
 	) => void;
 }
 
-const options = {
+const caseUploadOptions = {
 	isMultiple: true,
 	getFolderName: (req, file) => {
 		const folderMap: Record<string, string> = {
@@ -56,12 +57,35 @@ const options = {
 	},
 } as FileUploadConfig;
 
+const reportUploadOptions = {
+	isMultiple: true,
+	getFolderName: (req, file) => "case report",
+	fields: [{ name: "inquiryReport", maxCount: 5 }],
+	fileFilter: (req, file, cb) => {
+		const allowedTypes = new Set([
+			"image/jpeg",
+			"image/png",
+			"application/pdf",
+		]);
+		if (allowedTypes.has(file.mimetype)) {
+			cb(null, true);
+		} else {
+			cb(
+				new Error(
+					`Invalid media type "${file.mimetype}". Allowed: JPG, JPEG, PNG, PDF.`,
+				),
+				false,
+			);
+		}
+	},
+} as FileUploadConfig;
+
 const router = express.Router();
 const module = "Case";
 
 // routes open to general public
 router.get("/track/:trackingId", trackCase);
-router.post("/", fileUpload(options), addCase);
+router.post("/", fileUpload(caseUploadOptions), addCase);
 
 // routes open to only authenticated user types
 router.get("/", isAuthorized, retrieveAllCase);
@@ -72,8 +96,15 @@ router.patch(
 	"/:caseId",
 	isAuthorized,
 	isPermitted(module),
-	fileUpload(options),
+	fileUpload(caseUploadOptions),
 	updateCase,
+);
+router.put(
+	"/:caseId",
+	isAuthorized,
+	isPermitted(module),
+	fileUpload(reportUploadOptions),
+	submitCaseReport,
 );
 router.delete("/:caseId", isAuthorized, isPermitted(module), deleteCase);
 

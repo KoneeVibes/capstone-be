@@ -2,6 +2,12 @@ export default [
 	{
 		module: "Case",
 		route: ["/:caseId"],
+		method: "PUT",
+		allowedRole: ["manager", "regular"],
+	},
+	{
+		module: "Case",
+		route: ["/:caseId"],
 		method: "PATCH",
 		allowedRole: ["super-admin", "admin", "manager", "regular"],
 	},
@@ -40,5 +46,11 @@ export default [
 		route: ["/:userId"],
 		method: "DELETE",
 		allowedRole: ["super-admin"],
+	},
+	{
+		module: "Dispute",
+		route: ["/:disputeId"],
+		method: "PATCH",
+		allowedRole: ["manager", "regular"],
 	},
 ] as const;

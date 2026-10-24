@@ -9,6 +9,8 @@ import staffRoutes from "./route/staff.ts";
 import caseRoutes from "./route/case.ts";
 import miscRoutes from "./route/misc.ts";
 import invoiceRoutes from "./route/invoice.ts";
+import disputeRoutes from "./route/dispute.ts";
+import searchRoutes from "./route/search.ts";
 import authRoutes from "./route/authentication.ts";
 import webhook from "./route/webhook.ts";
 
@@ -35,5 +37,7 @@ app.use("/api/v1/staff", staffRoutes);
 app.use("/api/v1/case", caseRoutes);
 app.use("/api/v1/misc", miscRoutes);
 app.use("/api/v1/invoice", invoiceRoutes);
+app.use("/api/v1/dispute", disputeRoutes);
+app.use("/api/v1/search", searchRoutes);
 
 export { app };

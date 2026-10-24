@@ -78,7 +78,7 @@ const updateStaff = async (req: Request, res: Response) => {
 			await cloudinary.uploader.destroy(`avatar/${oldAvatarId}`);
 		}
 
-		res.status(200).json({
+		return res.status(200).json({
 			status: "success",
 			message: "Staff member updated successfully.",
 			data: updatedStaffMember,

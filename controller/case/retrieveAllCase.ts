@@ -4,7 +4,7 @@ import Case from "../../model/case.ts";
 const retrieveAllCase = async (req: Request, res: Response) => {
 	const currentUser = (
 		req as Request & {
-			user?: { type: string; email: string };
+			user?: { id: string; role: string; type: string; email: string };
 		}
 	).user;
 	const { filter, page, perPage } = req.query || {};
@@ -18,6 +18,8 @@ const retrieveAllCase = async (req: Request, res: Response) => {
 			"pending-information",
 			"under-review",
 			"closed",
+			"suspended",
+			"disputed",
 		] as const;
 		type CaseStatus = (typeof allowableStatuses)[number];
 
@@ -33,11 +35,23 @@ const retrieveAllCase = async (req: Request, res: Response) => {
 		const statusFilter = {
 			$in: validStatuses.length ? validStatuses : allowableStatuses,
 		};
+		const unassignedStatuses = ["submitted", "payment-validated"] as const;
 		const query = {
 			status: statusFilter,
 			...(currentUser &&
 			["registered-client", "guest-client"].includes(currentUser.type)
 				? { applicantEmail: currentUser.email }
+				: {}),
+			...(currentUser && currentUser.role !== "super-admin"
+				? {
+						$or: [
+							{ status: { $in: unassignedStatuses } },
+							{
+								status: { $nin: unassignedStatuses }, //include assigned staff manager's id to array when we have that set up.
+								"statusHistory.assigneeId": { $in: [currentUser.id] },
+							},
+						],
+					}
 				: {}),
 		};
 
@@ -54,7 +68,7 @@ const retrieveAllCase = async (req: Request, res: Response) => {
 			});
 		}
 
-		res.status(200).json({
+		return res.status(200).json({
 			status: "success",
 			message: "success",
 			data: cases,

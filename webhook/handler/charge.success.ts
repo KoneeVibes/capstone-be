@@ -77,7 +77,7 @@ const chargeSuccess = async (event: any) => {
 			statusHistory: {
 				status: "payment-validated",
 				changedAt: new Date(),
-				note: "Case validated successfully.",
+				note: "This is a system activity",
 			},
 		};
 

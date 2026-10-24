@@ -15,6 +15,7 @@ const caseStatusHistorySchema = new Schema(
 				"under-review",
 				"closed",
 				"suspended",
+				"disputed",
 			],
 		},
 		changedAt: {
@@ -121,6 +122,10 @@ const caseSchema = new Schema(
 			type: [String],
 			default: null,
 		},
+		inquiryReport: {
+			type: [String],
+			default: null,
+		},
 		status: {
 			type: String,
 			required: true,
@@ -134,6 +139,7 @@ const caseSchema = new Schema(
 				"under-review",
 				"closed",
 				"suspended",
+				"disputed",
 			],
 		},
 		statusHistory: {

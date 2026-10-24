@@ -1,8 +1,13 @@
 import type { Request, Response } from "express";
 import Case from "../../model/case.ts";
 
-const deleteCase = async (req: Request, res: Response) => {
+const suspendCase = async (req: Request, res: Response) => {
 	const { caseId } = req.params || {};
+	const currentUser = (
+		req as Request & {
+			user?: { id: string; role: string; type: string; email: string };
+		}
+	).user;
 	if (!caseId) {
 		return res.status(400).json({
 			status: "fail",
@@ -12,13 +17,11 @@ const deleteCase = async (req: Request, res: Response) => {
 
 	try {
 		const allowableStatuses = [
-			"submitted",
 			"payment-validated",
 			"assigned",
 			"accepted",
 			"pending-information",
 			"under-review",
-			"closed",
 		] as const;
 		const query = { id: caseId, status: { $in: allowableStatuses } };
 
@@ -34,25 +37,25 @@ const deleteCase = async (req: Request, res: Response) => {
 			statusHistory: {
 				status: "suspended",
 				changedAt: new Date(),
-				assigneeId: null, //when we introduce authorization, we will be able to replace null with the requesting user's id
+				assigneeId: currentUser?.id,
 			},
 		};
 
-		const deletedCase = await Case.findOneAndUpdate(query, updateOperation, {
+		const suspendedCase = await Case.findOneAndUpdate(query, updateOperation, {
 			returnDocument: "after",
 			runValidators: true,
 		});
-		if (!deletedCase) {
+		if (!suspendedCase) {
 			return res.status(404).json({
 				status: "fail",
 				message: "Case not found.",
 			});
 		}
 
-		res.status(200).json({
+		return res.status(200).json({
 			status: "success",
-			message: "Case deleted successfully.",
-			data: deletedCase,
+			message: "Case suspended successfully.",
+			data: suspendedCase,
 		});
 	} catch (error) {
 		console.error(error);
@@ -64,4 +67,4 @@ const deleteCase = async (req: Request, res: Response) => {
 	}
 };
 
-export default deleteCase;
+export default suspendCase;

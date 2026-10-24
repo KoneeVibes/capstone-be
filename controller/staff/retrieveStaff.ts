@@ -41,7 +41,7 @@ const retrieveStaff = async (req: Request, res: Response) => {
 			});
 		}
 
-		res.status(200).json({
+		return res.status(200).json({
 			status: "success",
 			message: "success",
 			data: staffMember,

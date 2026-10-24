@@ -5,7 +5,7 @@ const retrieveCase = async (req: Request, res: Response) => {
 	const { caseId } = req.params || {};
 	const currentUser = (
 		req as Request & {
-			user?: { type: string; email: string };
+			user?: { id: string; role: string; type: string; email: string };
 		}
 	).user;
 	if (!caseId) {
@@ -24,14 +24,28 @@ const retrieveCase = async (req: Request, res: Response) => {
 			"pending-information",
 			"under-review",
 			"closed",
+			"suspended",
+			"disputed",
 		] as const;
 
+		const unassignedStatuses = ["submitted", "payment-validated"] as const;
 		const query = {
 			id: caseId,
 			status: { $in: allowableStatuses },
 			...(currentUser &&
 			["registered-client", "guest-client"].includes(currentUser.type)
 				? { applicantEmail: currentUser.email }
+				: {}),
+			...(currentUser && currentUser.role !== "super-admin"
+				? {
+						$or: [
+							{ status: { $in: unassignedStatuses } },
+							{
+								status: { $nin: unassignedStatuses },
+								"statusHistory.assigneeId": { $in: [currentUser.id] }, //include assigned staff manager's id to array when we have that set up.
+							},
+						],
+					}
 				: {}),
 		};
 
@@ -43,7 +57,7 @@ const retrieveCase = async (req: Request, res: Response) => {
 			});
 		}
 
-		res.status(200).json({
+		return res.status(200).json({
 			status: "success",
 			message: "success",
 			data: caseDetail,
