@@ -3,6 +3,8 @@ import Dispute from "../../model/dispute.ts";
 
 const retrieveAllDispute = async (req: Request, res: Response) => {
 	const { caseId } = req.params || {};
+	const { page, perPage } = req.query || {};
+
 	if (!caseId) {
 		return res.status(400).json({
 			status: "fail",
@@ -12,7 +14,17 @@ const retrieveAllDispute = async (req: Request, res: Response) => {
 
 	try {
 		const query = { caseId };
-		const disputes = await Dispute.find(query);
+
+		const pageNumber = Math.max(Number(page) || 1, 1);
+		const limit = Math.max(Number(perPage) || 10, 1);
+		const skip = (pageNumber - 1) * limit;
+
+		const total = await Dispute.countDocuments(query).exec();
+		const disputes = await Dispute.find(query)
+			.skip(skip)
+			.limit(limit)
+			.lean()
+			.exec();
 		if (!(disputes.length > 0)) {
 			return res.status(404).json({
 				status: "fail",
@@ -24,6 +36,12 @@ const retrieveAllDispute = async (req: Request, res: Response) => {
 			status: "success",
 			message: "success",
 			data: disputes,
+			meta: {
+				page: pageNumber,
+				perPage: limit,
+				total,
+				totalPages: Math.ceil(total / limit),
+			},
 		});
 	} catch (error) {
 		console.error(error);
