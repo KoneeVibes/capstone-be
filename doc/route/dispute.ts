@@ -9,7 +9,7 @@
  *       Allows an authenticated registered client to open a dispute on their
  *       own case, provided the case is closed. A case may have only one open
  *       dispute at a time. Up to five JPG, JPEG, PNG, or PDF attachments may
- *       be uploaded; the configured file-size limit is 5 MB per file.
+ *       be uploaded. The configured file-size limit is 5 MB per file.
  *     security:
  *       - BearerAuth: []
  *     requestBody:
@@ -108,9 +108,8 @@
  *       - Dispute
  *     summary: Reject an open dispute
  *     description: >
- *       Rejects an open dispute and records a rejection note. This endpoint
- *       requires the Dispute-module permission granted to the manager and
- *       regular roles.
+ *       Rejects an open dispute and records a rejection note. Requires the
+ *       Dispute-module permission granted to the manager and regular roles.
  *     security:
  *       - BearerAuth: []
  *     parameters:
@@ -165,7 +164,7 @@
  *     tags:
  *       - Dispute
  *     summary: Retrieve disputes for a case
- *     description: Retrieves all disputes associated with the specified case ID.
+ *     description: Retrieves a paginated list of disputes associated with the specified case ID.
  *     security:
  *       - BearerAuth: []
  *     parameters:
@@ -175,6 +174,22 @@
  *         description: The case's application ID.
  *         schema:
  *           type: string
+ *       - in: query
+ *         name: page
+ *         required: false
+ *         description: Page number, starting at 1.
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *           default: 1
+ *       - in: query
+ *         name: perPage
+ *         required: false
+ *         description: Number of disputes per page.
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *           default: 10
  *     responses:
  *       200:
  *         description: Case disputes retrieved successfully.
@@ -193,10 +208,14 @@
  *                   type: array
  *                   items:
  *                     $ref: '#/components/schemas/Dispute'
+ *                 meta:
+ *                   $ref: '#/components/schemas/PaginationMeta'
+ *       400:
+ *         description: Case ID was not provided.
  *       401:
  *         description: Authentication is required.
  *       404:
- *         description: No disputes were found for this case.
+ *         description: No disputes were found for this case and page.
  *       500:
  *         description: Server error while retrieving case disputes.
  */
@@ -239,4 +258,16 @@
  *         updatedAt:
  *           type: string
  *           format: date-time
+ *
+ *     PaginationMeta:
+ *       type: object
+ *       properties:
+ *         page:
+ *           type: integer
+ *         perPage:
+ *           type: integer
+ *         total:
+ *           type: integer
+ *         totalPages:
+ *           type: integer
  */
