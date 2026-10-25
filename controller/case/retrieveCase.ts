@@ -36,7 +36,9 @@ const retrieveCase = async (req: Request, res: Response) => {
 			["registered-client", "guest-client"].includes(currentUser.type)
 				? { applicantEmail: currentUser.email }
 				: {}),
-			...(currentUser && currentUser.role !== "super-admin"
+			...(currentUser &&
+			!["registered-client", "guest-client"].includes(currentUser.type) &&
+			currentUser.role !== "super-admin"
 				? {
 						$or: [
 							{ status: { $in: unassignedStatuses } },
