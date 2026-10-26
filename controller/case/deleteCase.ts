@@ -62,7 +62,7 @@ const suspendCase = async (req: Request, res: Response) => {
 		return res.status(500).json({
 			status: "fail",
 			message:
-				"Server encountered an issue in deleting this case. Please retry",
+				"Server encountered an issue in suspending this case. Please retry",
 		});
 	}
 };

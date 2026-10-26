@@ -409,17 +409,17 @@
  *   delete:
  *     tags:
  *       - Case
- *     summary: Delete a case
- *     description: Deletes the case identified by caseId.
+ *     summary: Suspend a case
+ *     description: Suspends the case identified by caseId.
  *     security:
  *       - BearerAuth: []
  *     responses:
  *       200:
- *         description: Case deleted successfully.
+ *         description: Case suspended successfully.
  *       401:
  *         description: Authentication is required.
  *       403:
- *         description: The user is not permitted to delete cases.
+ *         description: The user is not permitted to suspend cases.
  *       404:
  *         description: Case not found.
  *       500:
