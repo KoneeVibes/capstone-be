@@ -18,6 +18,7 @@ const trackCase = async (req: Request, res: Response) => {
 				status: 1,
 				statusHistory: 1,
 				updatedAt: 1,
+				propertyAddress: 1,
 			},
 		)
 			.lean()
