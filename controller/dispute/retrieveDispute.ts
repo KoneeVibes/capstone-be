@@ -15,7 +15,7 @@ const retrieveDispute = async (req: Request, res: Response) => {
 		const foundDispute = await Dispute.findOne(query);
 		if (!foundDispute) {
 			return res.status(404).json({
-				status: "success",
+				status: "fail",
 				message: "Case dispute not found",
 			});
 		}

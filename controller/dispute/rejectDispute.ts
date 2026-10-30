@@ -1,10 +1,16 @@
 import type { Request, Response } from "express";
+import Case from "../../model/case.ts";
 import Dispute from "../../model/dispute.ts";
 import isValidString from "../../validator/isValidString.ts";
 
 const rejectDispute = async (req: Request, res: Response) => {
 	const { disputeId } = req.params;
 	const { rejectionNote } = req.body;
+	const currentUser = (
+		req as Request & {
+			user?: { id: string; role: string; type: string; email: string };
+		}
+	).user;
 
 	if (![disputeId, rejectionNote].every(isValidString)) {
 		return res.status(400).json({
@@ -22,6 +28,23 @@ const rejectDispute = async (req: Request, res: Response) => {
 			status: "rejected",
 			rejectionNote,
 		};
+		const foundDispute = await Dispute.findOne(query);
+		if (!foundDispute) {
+			return res.status(404).json({
+				status: "fail",
+				message: "Dispute not found.",
+			});
+		}
+
+		const foundCase = await Case.findOne({ id: foundDispute.caseId });
+		// include assigned staff manager's id to condition when we have that set up
+		if (foundCase?.assigneeId !== currentUser?.id) {
+			return res.status(401).json({
+				status: "fail",
+				message: "Only the assigned staff member may reject the dispute.",
+			});
+		}
+
 		const rejectedDispute = await Dispute.findOneAndUpdate(
 			query,
 			{ $set: updateData },
@@ -33,7 +56,7 @@ const rejectDispute = async (req: Request, res: Response) => {
 		if (!rejectedDispute) {
 			return res.status(404).json({
 				status: "fail",
-				message: "Dispute not found.",
+				message: "Failed to reject dispute.",
 			});
 		}
 

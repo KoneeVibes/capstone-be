@@ -207,10 +207,7 @@ const updateCase = async (req: Request, res: Response) => {
 			}
 
 			if (status === "disputed") {
-				if (
-					foundCase.status === "suspended" ||
-					foundCase.status === "disputed"
-				) {
+				if (foundCase.status !== "closed") {
 					throw new ControllerError(
 						409,
 						`A case with status ${foundCase.status} cannot be disputed.`,
