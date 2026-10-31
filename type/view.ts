@@ -20,3 +20,9 @@ export type passwordResetNotification = {
 	customerName: string;
 	otp: string;
 };
+
+export type caseClosureNotification = {
+	customerName: string;
+	trackingId: string;
+	status: string;
+};

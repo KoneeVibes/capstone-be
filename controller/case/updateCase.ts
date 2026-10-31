@@ -2,6 +2,8 @@ import type { Request, Response } from "express";
 import Case from "../../model/case.ts";
 import User from "../../model/user.ts";
 import Dispute from "../../model/dispute.ts";
+import sendEmail from "../../util/notification/resend/emailSender.ts";
+import { caseClosureNotificationTemplate } from "../../view/case/caseClosureNotification.ts";
 
 const editableStatuses = [
 	"assigned",
@@ -291,6 +293,21 @@ const updateCase = async (req: Request, res: Response) => {
 						"The open dispute changed before it could be accepted. Reload and try again.",
 					);
 				}
+			}
+
+			if (status === "closed") {
+				const templateConfig = {
+					customerName: foundCase.applicantName,
+					trackingId: foundCase.trackingId,
+					status,
+				};
+				const html = caseClosureNotificationTemplate(templateConfig);
+				const mailConfig = {
+					email: foundCase.applicantEmail,
+					html,
+					subject: `Inquiry Completed, Case Closed`,
+				};
+				await sendEmail(mailConfig);
 			}
 		});
 
