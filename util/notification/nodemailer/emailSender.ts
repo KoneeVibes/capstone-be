@@ -3,8 +3,8 @@ import type { emailConfig } from "../../../type/util.ts";
 
 const sendEmail = async ({
 	email,
-    text,
-    html,
+	text,
+	html,
 	attachments,
 	subject,
 }: emailConfig) => {
@@ -25,12 +25,11 @@ const sendEmail = async ({
 		from: `"PropertyIntel" <${process.env.MAIL_ID}>`,
 		to: email,
 		subject: subject,
-        text: text,
-        html: html,
-		attachments: attachments?.map((att) => ({
-			...att,
-			content: Buffer.from(att.content),
-		})),
+		text: text,
+		html: html,
+		attachments: attachments?.map((att) =>
+			"content" in att ? { ...att, content: Buffer.from(att.content) } : att,
+		),
 	};
 
 	return transporter.sendMail(mailOptions);
