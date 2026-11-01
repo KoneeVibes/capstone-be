@@ -16,10 +16,14 @@ const sendEmail = async ({
 		subject,
 		...(attachments?.length
 			? {
-					attachments: attachments.map((att) => ({
-						...att,
-						content: Buffer.from(att.content),
-					})),
+					attachments: attachments.map((att) =>
+						"path" in att
+							? att
+							: {
+									filename: att.filename,
+									content: Buffer.from(att.content).toString("base64"),
+								},
+					),
 				}
 			: {}),
 	};

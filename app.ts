@@ -11,6 +11,7 @@ import miscRoutes from "./route/misc.ts";
 import invoiceRoutes from "./route/invoice.ts";
 import disputeRoutes from "./route/dispute.ts";
 import searchRoutes from "./route/search.ts";
+import dashboardRoutes from "./route/dashboard.ts";
 import authRoutes from "./route/authentication.ts";
 import webhook from "./route/webhook.ts";
 
@@ -39,5 +40,6 @@ app.use("/api/v1/misc", miscRoutes);
 app.use("/api/v1/invoice", invoiceRoutes);
 app.use("/api/v1/dispute", disputeRoutes);
 app.use("/api/v1/search", searchRoutes);
+app.use("/api/v1/dashboard", dashboardRoutes);
 
 export { app };

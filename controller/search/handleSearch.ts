@@ -2,6 +2,8 @@ import type { Request, Response } from "express";
 import type { QueryFilter } from "mongoose";
 import Case from "../../model/case.ts";
 import User from "../../model/user.ts";
+import Search from "../../model/search.ts";
+import { v4 as uuidv4 } from "uuid";
 
 const searchFlags = [
 	"case",
@@ -30,7 +32,8 @@ type UserSearchDocument = {
 const escapeRegex = (value: string) =>
 	value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
-const searchController = async (req: Request, res: Response) => {
+const handleSearch = async (req: Request, res: Response) => {
+	const { saveToHistory } = req.query;
 	const currentUser = (req as Request & { user?: AuthenticatedUser }).user;
 
 	if (!currentUser) {
@@ -209,6 +212,35 @@ const searchController = async (req: Request, res: Response) => {
 			});
 		}
 
+		if (saveToHistory === "true") {
+			const normalizedQuery = searchTerm.trim().toLocaleLowerCase();
+			const normalizedFlags = [...flags].sort();
+			const searchKey = JSON.stringify([normalizedQuery, normalizedFlags]);
+			await Search.findOneAndUpdate(
+				{
+					requester: currentUser.id,
+					key: searchKey,
+				},
+				{
+					$set: {
+						query: searchTerm,
+						flag: normalizedFlags,
+						status: "active",
+					},
+					$setOnInsert: {
+						id: uuidv4(),
+						requester: currentUser.id,
+						key: searchKey,
+					},
+				},
+				{
+					upsert: true,
+					new: true,
+					runValidators: true,
+				},
+			);
+		}
+
 		return res.status(200).json({
 			status: "success",
 			message: "Search completed successfully.",
@@ -227,4 +259,4 @@ const searchController = async (req: Request, res: Response) => {
 	}
 };
 
-export default searchController;
+export default handleSearch;

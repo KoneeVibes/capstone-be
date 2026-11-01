@@ -28,6 +28,13 @@ class ControllerError extends Error {
 	}
 }
 
+const getFileExtension = (fileUrl: string): string => {
+	const pathname = new URL(fileUrl).pathname;
+	const filename = decodeURIComponent(pathname.split("/").pop() ?? "");
+	const match = filename.match(/\.([a-z0-9]+)$/i);
+	return match ? `.${match[1].toLowerCase()}` : "";
+};
+
 const updateCase = async (req: Request, res: Response) => {
 	const { caseId } = req.params;
 	const currentUser = (
@@ -302,10 +309,19 @@ const updateCase = async (req: Request, res: Response) => {
 					status,
 				};
 				const html = caseClosureNotificationTemplate(templateConfig);
+				const attachments = (foundCase.inquiryReport ?? [])
+					.filter(
+						(url): url is string => typeof url === "string" && url.length > 0,
+					)
+					.map((url, index) => ({
+						path: url,
+						filename: `${foundCase.trackingId}-Inquiry-Report-${index + 1}${getFileExtension(url)}`,
+					}));
 				const mailConfig = {
 					email: foundCase.applicantEmail,
 					html,
 					subject: `Inquiry Completed, Case Closed`,
+					attachments,
 				};
 				await sendEmail(mailConfig);
 			}

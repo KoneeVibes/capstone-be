@@ -1,11 +1,17 @@
+type EmailAttachment =
+	| {
+			path: string;
+			filename: string;
+	  }
+	| {
+			content: Buffer | Uint8Array | string;
+			filename: string;
+	  };
+
 export type emailConfig = {
 	email: string;
-    text?: string;
-    html?: string;
-	attachments?: {
-		filename: string;
-		content: Uint8Array<ArrayBufferLike>;
-		contentType: string;
-	}[];
 	subject: string;
+	text?: string;
+	html?: string;
+	attachments?: EmailAttachment[];
 };

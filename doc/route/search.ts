@@ -16,6 +16,11 @@
  *       For staff, super-admins can search all cases. Other staff can search
  *       submitted and payment-validated cases, plus cases whose status history
  *       includes their user ID.
+ *
+ *       Search history is saved only when saveToHistory is the string "true"
+ *       and the current page returns at least one result. A repeated search
+ *       with the same normalized query and flags updates the existing history
+ *       record and sets its status to active.
  *     operationId: search
  *     security:
  *       - BearerAuth: []
@@ -52,6 +57,20 @@
  *           - case
  *           - staff
  *       - in: query
+ *         name: saveToHistory
+ *         required: false
+ *         description: >
+ *           Pass the string "true" when the user commits the search, such as by
+ *           pressing Enter or clicking Search. Omit it or pass "false" for
+ *           live-search requests while the user is typing.
+ *         schema:
+ *           type: string
+ *           enum:
+ *             - "true"
+ *             - "false"
+ *           default: "false"
+ *         example: "true"
+ *       - in: query
  *         name: page
  *         required: false
  *         description: Page number, starting at 1.
@@ -85,6 +104,10 @@
  *               $ref: '#/components/schemas/MessageResponse'
  *       401:
  *         description: Authentication is required.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/MessageResponse'
  *       403:
  *         description: >
  *           The authenticated user is not allowed to use search, or a
@@ -94,13 +117,126 @@
  *             schema:
  *               $ref: '#/components/schemas/MessageResponse'
  *       404:
- *         description: No matching records were found.
+ *         description: No matching records were found on the requested page.
  *         content:
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/SearchResponse'
  *       500:
- *         description: Server error while searching.
+ *         description: Server error while searching or saving search history.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/MessageResponse'
+ */
+
+/**
+ * @swagger
+ * /api/v1/search/history:
+ *   get:
+ *     tags:
+ *       - Search
+ *     summary: Retrieve the authenticated user's search history
+ *     description: >
+ *       Returns active search history records for the authenticated user,
+ *       ordered by most recently updated. The internal key and MongoDB
+ *       document fields _id and __v are omitted. An empty history returns
+ *       status 200 with an empty data array.
+ *     operationId: retrieveSearchHistory
+ *     security:
+ *       - BearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: page
+ *         required: false
+ *         description: Page number, starting at 1.
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *           default: 1
+ *       - in: query
+ *         name: perPage
+ *         required: false
+ *         description: >
+ *           Number of history records per page. Values are limited to 1–100.
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *           maximum: 100
+ *           default: 10
+ *     responses:
+ *       200:
+ *         description: Search history retrieved, including when it is empty.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/SearchHistoryResponse'
+ *       401:
+ *         description: Authentication is required.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/MessageResponse'
+ *       500:
+ *         description: Server error while retrieving search history.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/MessageResponse'
+ */
+
+/**
+ * @swagger
+ * /api/v1/search/history/{searchId}:
+ *   delete:
+ *     tags:
+ *       - Search
+ *     summary: Delete a search history record
+ *     description: >
+ *       Marks the authenticated user's search history record as inactive.
+ *       Inactive records are excluded from search history retrieval. The
+ *       record is not physically removed from the database.
+ *     operationId: deleteSearchRecord
+ *     security:
+ *       - BearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: searchId
+ *         required: true
+ *         description: The application-level ID of the search history record.
+ *         schema:
+ *           type: string
+ *         example: 4a60c17d-8725-45d8-ad1e-a89f26f340e4
+ *     responses:
+ *       200:
+ *         description: Search history record marked inactive.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/MessageResponse'
+ *             example:
+ *               status: success
+ *               message: Search record deleted successfully.
+ *       400:
+ *         description: Search ID was not provided.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/MessageResponse'
+ *       401:
+ *         description: Authentication is required.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/MessageResponse'
+ *       404:
+ *         description: Search record was not found for the authenticated user.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/MessageResponse'
+ *       500:
+ *         description: Server error while deleting the search history record.
  *         content:
  *           application/json:
  *             schema:
@@ -124,7 +260,11 @@
  *           example: success
  *         message:
  *           type: string
- *           example: Search completed successfully.
+ *           examples:
+ *             found:
+ *               value: Search completed successfully.
+ *             notFound:
+ *               value: No matching records found.
  *         data:
  *           type: object
  *           description: >
@@ -149,11 +289,95 @@
  *                 $ref: '#/components/schemas/SearchUser'
  *         meta:
  *           type: object
+ *           required:
+ *             - page
+ *             - perPage
  *           properties:
  *             page:
  *               type: integer
  *             perPage:
  *               type: integer
+ *
+ *     SearchHistoryResponse:
+ *       type: object
+ *       required:
+ *         - status
+ *         - message
+ *         - data
+ *         - meta
+ *       properties:
+ *         status:
+ *           type: string
+ *           example: success
+ *         message:
+ *           type: string
+ *           example: Search history retrieved successfully.
+ *         data:
+ *           type: array
+ *           items:
+ *             $ref: '#/components/schemas/SearchHistoryRecord'
+ *         meta:
+ *           type: object
+ *           required:
+ *             - page
+ *             - perPage
+ *             - total
+ *             - totalPages
+ *           properties:
+ *             page:
+ *               type: integer
+ *             perPage:
+ *               type: integer
+ *             total:
+ *               type: integer
+ *             totalPages:
+ *               type: integer
+ *
+ *     SearchHistoryRecord:
+ *       type: object
+ *       description: >
+ *         Active search history record. The key, MongoDB _id, and __v fields
+ *         are omitted from the response.
+ *       required:
+ *         - id
+ *         - requester
+ *         - query
+ *         - flag
+ *         - status
+ *         - createdAt
+ *         - updatedAt
+ *       properties:
+ *         id:
+ *           type: string
+ *           description: Application-level search record ID.
+ *           example: 4a60c17d-8725-45d8-ad1e-a89f26f340e4
+ *         requester:
+ *           type: string
+ *           description: ID of the user who made the search.
+ *         query:
+ *           type: string
+ *           example: Lagos
+ *         flag:
+ *           type: array
+ *           items:
+ *             type: string
+ *             enum:
+ *               - case
+ *               - staff
+ *               - registered-client
+ *               - guest-client
+ *         status:
+ *           type: string
+ *           enum:
+ *             - active
+ *             - inactive
+ *           example: active
+ *         createdAt:
+ *           type: string
+ *           format: date-time
+ *         updatedAt:
+ *           type: string
+ *           format: date-time
  *
  *     SearchUser:
  *       type: object
