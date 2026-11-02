@@ -28,7 +28,7 @@ const deleteSearchRecord = async (req: Request, res: Response) => {
 		const deletedSearch = await Search.findOneAndUpdate(
 			query,
 			{ $set: { status: "inactive" } },
-			{ new: true },
+			{ returnDocument: "after" },
 		).exec();
 		if (!deletedSearch) {
 			return res.status(404).json({

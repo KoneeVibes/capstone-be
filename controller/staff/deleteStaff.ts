@@ -22,7 +22,7 @@ const deleteStaff = async (req: Request, res: Response) => {
 		} as const;
 
 		const deletedStaffMember = await User.findOneAndUpdate(query, updateData, {
-			new: true,
+			returnDocument: "after",
 		});
 		if (!deletedStaffMember) {
 			return res.status(404).json({
