@@ -125,13 +125,13 @@ const handleSearch = async (req: Request, res: Response) => {
 
 		const caseSearchFields = [
 			{ trackingId: regex },
-			{ applicantName: regex },
-			{ applicantEmail: regex },
-			{ applicantPhone: regex },
-			{ propertyCity: regex },
-			{ propertyState: regex },
-			{ propertyLGA: regex },
-			{ propertyAddress: regex },
+			// { applicantName: regex },
+			// { applicantEmail: regex },
+			// { applicantPhone: regex },
+			// { propertyCity: regex },
+			// { propertyState: regex },
+			// { propertyLGA: regex },
+			// { propertyAddress: regex },
 		];
 
 		if (flags.includes("case")) {
