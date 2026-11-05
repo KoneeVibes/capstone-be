@@ -84,7 +84,17 @@ const router = express.Router();
 const module = "Case";
 
 // routes open to general public
-router.get("/track/:trackingId", trackCase);
+router.get(
+	"/track/:trackingId",
+	(req, res, next) => {
+		const authHeader = req.headers.authorization;
+		if (authHeader) {
+			return isAuthorized(req, res, next);
+		}
+		next();
+	},
+	trackCase,
+);
 router.post("/", fileUpload(caseUploadOptions), addCase);
 
 // routes open to only authenticated user types
