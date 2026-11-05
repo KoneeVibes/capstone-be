@@ -16,12 +16,6 @@ const trackCase = async (req: Request, res: Response) => {
 	const { trackingId }: { trackingId?: string } = req.params || {};
 	const currentUser = (req as Request & { user?: AuthenticatedUser }).user;
 
-	if (!currentUser) {
-		return res.status(401).json({
-			status: "fail",
-			message: "Authentication is required.",
-		});
-	}
 	if (![trackingId].every(isValidString)) {
 		return res.status(400).json({
 			status: "fail",
@@ -79,7 +73,7 @@ const trackCase = async (req: Request, res: Response) => {
 			return { ...record, assigneeName };
 		});
 
-		if (currentUser.id) {
+		if (currentUser?.id) {
 			const normalizedQuery = trackingId?.trim().toLocaleLowerCase();
 			const normalizedFlags = ["case"].sort();
 			const searchKey = JSON.stringify([normalizedQuery, normalizedFlags]);
