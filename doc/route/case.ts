@@ -197,7 +197,14 @@
  *     tags:
  *       - Case
  *     summary: Track a case
- *     description: Retrieves case tracking information using its tracking ID. Authentication is not required.
+ *     description: >
+ *       Retrieves case tracking information using its tracking ID. This
+ *       endpoint is publicly accessible. Authentication is optional; if a
+ *       bearer token is supplied, it is validated.
+ *     # Either provide a bearer token or make the request anonymously.
+ *     security:
+ *       - BearerAuth: []
+ *       - {}
  *     parameters:
  *       - in: path
  *         name: trackingId
@@ -220,6 +227,8 @@
  *                   type: string
  *                 data:
  *                   $ref: '#/components/schemas/Case'
+ *       401:
+ *         description: A supplied bearer token is invalid or expired.
  *       404:
  *         description: Case not found.
  *       500:
