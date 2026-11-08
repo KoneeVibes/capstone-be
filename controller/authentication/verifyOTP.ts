@@ -118,6 +118,7 @@ const verifyOTP = async (req: Request, res: Response) => {
 		}
 		if (otpType === "password-reset") {
 			foundUser.password = user.password;
+			foundUser.passwordChanged = true;
 		}
 		await foundUser.save({ session });
 

@@ -91,7 +91,8 @@
  *       Creates a case and optionally uploads property survey plan and
  *       property title document files. This endpoint is publicly accessible.
  *       Accepted upload formats are JPG, JPEG, PNG, and PDF; the upload limit
- *       is 5 MB per file.
+ *       is 5 MB per file. A new case's conversation is created with status
+ *       closed and an empty chat.
  *     requestBody:
  *       required: true
  *       content:
@@ -281,53 +282,53 @@
  *   patch:
  *     tags:
  *       - Case
- *     summary: Update a case or its assignment
+ *     summary: Update a case status or assignment
  *     description: >
  *       Updates a case status, assigns or reassigns the case, or performs both
  *       actions when assigning. Assignment-only requests are restricted to
  *       super-admins, admins, and managers, and are allowed when the current
- *       status is payment-validated, assigned, or accepted. Reassigning a
- *       suspended case requires a super-admin. Setting status to assigned
- *       requires assigneeId. Do not provide assigneeId with accepted, closed,
- *       or disputed.
+ *       case status is payment-validated, assigned, or accepted. Reassigning
+ *       a suspended case requires a super-admin. Setting the status to
+ *       assigned requires assigneeId. Do not provide assigneeId with another
+ *       status.
+ *
+ *       A case may be moved to pending-information only when its current status
+ *       is accepted or pending-information, and only by its assigned staff
+ *       member. When the current status is accepted, the case becomes
+ *       pending-information and its conversation becomes open. When the
+ *       current status is already pending-information, sending
+ *       pending-information again restores the case status to the status
+ *       preceding pending-information in statusHistory and closes the
+ *       conversation.
  *     security:
  *       - BearerAuth: []
  *     requestBody:
  *       required: true
  *       content:
- *         multipart/form-data:
+ *         application/json:
  *           schema:
  *             type: object
  *             properties:
  *               status:
  *                 type: string
+ *                 description: >
+ *                   Requested case status. Sending pending-information toggles
+ *                   between pending-information and the preceding case status,
+ *                   and opens or closes the conversation accordingly.
  *                 enum:
  *                   - assigned
  *                   - accepted
  *                   - closed
  *                   - disputed
+ *                   - pending-information
  *               assigneeId:
  *                 type: string
  *                 description: >
  *                   Required when status is assigned. May also be supplied
- *                   alone to assign or reassign a case.
- *               propertySurveyPlan:
- *                 type: array
- *                 description: Optional survey-plan files.
- *                 items:
- *                   type: string
- *                   format: binary
- *               propertyTitleDocument:
- *                 type: array
- *                 description: Optional property-title document files.
- *                 items:
- *                   type: string
- *                   format: binary
- *           encoding:
- *             propertySurveyPlan:
- *               contentType: image/jpeg, image/png, application/pdf
- *             propertyTitleDocument:
- *               contentType: image/jpeg, image/png, application/pdf
+ *                   alone to assign or reassign a case. Only super-admins,
+ *                   admins, and managers may assign or reassign cases.
+ *             example:
+ *               status: pending-information
  *     responses:
  *       200:
  *         description: Case updated successfully.
@@ -345,7 +346,10 @@
  *                 data:
  *                   $ref: '#/components/schemas/Case'
  *       400:
- *         description: Required update fields are missing or invalid.
+ *         description: >
+ *           No update fields were provided, the status is invalid, the
+ *           assigneeId is invalid, or assigneeId was not provided when
+ *           assigning a case.
  *       401:
  *         description: Authentication is required.
  *       403:
@@ -353,7 +357,9 @@
  *       404:
  *         description: Case or assignee was not found.
  *       409:
- *         description: The requested status transition is not allowed, or the case changed before the update.
+ *         description: >
+ *           The requested status transition is not allowed, the required open
+ *           dispute does not exist, or the case changed before the update.
  *       500:
  *         description: Server error while updating the case.
  *
@@ -433,6 +439,76 @@
  *         description: Case not found.
  *       500:
  *         description: Server error while deleting the case.
+ *
+ * /api/v1/case/{caseId}/message:
+ *   post:
+ *     tags:
+ *       - Case
+ *     summary: Submit a message to a case conversation
+ *     description: >
+ *       Adds a text message to the case conversation. Authentication is
+ *       required. The conversation must be open when the message is added.
+ *       The sender ID is taken from the authenticated user; clients do not
+ *       provide senderId, message ID, or timestamps. The server generates a
+ *       UUID for the message ID and sets sentAt and updatedAt when it creates
+ *       the message. Message IDs are checked against the IDs already in the
+ *       conversation before appending.
+ *     security:
+ *       - BearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: caseId
+ *         required: true
+ *         description: The case's application ID.
+ *         schema:
+ *           type: string
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - text
+ *             properties:
+ *               text:
+ *                 type: string
+ *                 minLength: 1
+ *                 description: Message text. Leading and trailing whitespace is trimmed.
+ *                 example: Could you provide the missing property document?
+ *     responses:
+ *       201:
+ *         description: Message submitted successfully.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: success
+ *                 message:
+ *                   type: string
+ *                   example: Message submitted successfully.
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     caseId:
+ *                       type: string
+ *                     message:
+ *                       $ref: '#/components/schemas/ConversationMessage'
+ *       400:
+ *         description: Case ID or authenticated user is missing, or text is empty.
+ *       401:
+ *         description: Authentication is required.
+ *       404:
+ *         description: Case not found.
+ *       409:
+ *         description: >
+ *           The conversation is closed, or the case changed while the message
+ *           was being submitted.
+ *       500:
+ *         description: Server error while submitting the message.
  */
 
 /**
@@ -509,6 +585,23 @@
  *           nullable: true
  *           items:
  *             type: string
+ *         conversation:
+ *           type: object
+ *           nullable: true
+ *           description: >
+ *             Conversation associated with the case. New cases have a closed
+ *             conversation with an empty chat.
+ *           properties:
+ *             status:
+ *               type: string
+ *               enum:
+ *                 - open
+ *                 - closed
+ *               default: closed
+ *             chat:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/ConversationMessage'
  *         status:
  *           type: string
  *           enum:
@@ -528,6 +621,16 @@
  *             properties:
  *               status:
  *                 type: string
+ *                 enum:
+ *                   - submitted
+ *                   - payment-validated
+ *                   - assigned
+ *                   - accepted
+ *                   - pending-information
+ *                   - under-review
+ *                   - closed
+ *                   - suspended
+ *                   - disputed
  *               changedAt:
  *                 type: string
  *                 format: date-time
@@ -538,6 +641,24 @@
  *                 type: string
  *                 nullable: true
  *         createdAt:
+ *           type: string
+ *           format: date-time
+ *         updatedAt:
+ *           type: string
+ *           format: date-time
+ *
+ *     ConversationMessage:
+ *       type: object
+ *       properties:
+ *         id:
+ *           type: string
+ *           description: Server-generated UUID for this message.
+ *         senderId:
+ *           type: string
+ *           description: ID of the authenticated user who sent the message.
+ *         text:
+ *           type: string
+ *         sentAt:
  *           type: string
  *           format: date-time
  *         updatedAt:

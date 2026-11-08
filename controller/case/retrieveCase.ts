@@ -1,5 +1,6 @@
 import type { Request, Response } from "express";
 import Case from "../../model/case.ts";
+import addConversationSenderName from "../../helper/addConversationSenderName.ts";
 
 const retrieveCase = async (req: Request, res: Response) => {
 	const { caseId } = req.params || {};
@@ -51,18 +52,19 @@ const retrieveCase = async (req: Request, res: Response) => {
 				: {}),
 		};
 
-		const caseDetail = await Case.findOne(query);
+		const caseDetail = await Case.findOne(query).lean().exec();
 		if (!caseDetail) {
 			return res.status(404).json({
 				status: "fail",
 				message: "Case not found.",
 			});
 		}
+		const [caseWithSenderName] = await addConversationSenderName([caseDetail]);
 
 		return res.status(200).json({
 			status: "success",
 			message: "success",
-			data: caseDetail,
+			data: caseWithSenderName,
 		});
 	} catch (error) {
 		console.error(error);

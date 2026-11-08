@@ -11,6 +11,7 @@ import trackCase from "../controller/case/trackCase.ts";
 import retrieveCase from "../controller/case/retrieveCase.ts";
 import retrieveAllCase from "../controller/case/retrieveAllCase.ts";
 import submitCaseReport from "../controller/case/submitReport.ts";
+import submitMessage from "../controller/case/submitMessage.ts";
 
 interface FileFilterCallback {
 	(error: Error | null, acceptFile?: boolean): void;
@@ -100,6 +101,7 @@ router.post("/", fileUpload(caseUploadOptions), addCase);
 // routes open to only authenticated user types
 router.get("/", isAuthorized, retrieveAllCase);
 router.get("/:caseId", isAuthorized, retrieveCase);
+router.post("/:caseId/message", isAuthorized, submitMessage);
 
 // routes open to only authenticated user types and permitted user roles
 router.patch(

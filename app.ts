@@ -13,6 +13,7 @@ import disputeRoutes from "./route/dispute.ts";
 import searchRoutes from "./route/search.ts";
 import dashboardRoutes from "./route/dashboard.ts";
 import authRoutes from "./route/authentication.ts";
+import profileRoutes from "./route/profile.ts";
 import webhook from "./route/webhook.ts";
 
 // app instance
@@ -41,5 +42,6 @@ app.use("/api/v1/invoice", invoiceRoutes);
 app.use("/api/v1/dispute", disputeRoutes);
 app.use("/api/v1/search", searchRoutes);
 app.use("/api/v1/dashboard", dashboardRoutes);
+app.use("/api/v1/profile", profileRoutes);
 
 export { app };

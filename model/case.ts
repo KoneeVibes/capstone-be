@@ -1,6 +1,52 @@
 import { Schema } from "mongoose";
 import appDB from "../db/dbConnect.ts";
 
+const conversationMessageSchema = new Schema(
+	{
+		id: {
+			type: String,
+			required: true,
+			// enforce uniqueness in your ID-generation logic
+		},
+		senderId: {
+			type: String,
+			required: true,
+		},
+		text: {
+			type: String,
+			required: true,
+			trim: true,
+		},
+		sentAt: {
+			type: Date,
+			required: true,
+			default: Date.now,
+		},
+		updatedAt: {
+			type: Date,
+			required: true,
+			default: Date.now,
+		},
+	},
+	{ _id: false },
+);
+
+const conversationSchema = new Schema(
+	{
+		status: {
+			type: String,
+			required: true,
+			enum: ["open", "closed"],
+			default: "closed",
+		},
+		chat: {
+			type: [conversationMessageSchema],
+			default: [],
+		},
+	},
+	{ _id: false },
+);
+
 const caseStatusHistorySchema = new Schema(
 	{
 		status: {
@@ -125,6 +171,10 @@ const caseSchema = new Schema(
 		inquiryReport: {
 			type: [String],
 			default: null,
+		},
+		conversation: {
+			type: conversationSchema,
+			default: () => ({ status: "closed", chat: [] }),
 		},
 		status: {
 			type: String,

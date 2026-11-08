@@ -10,6 +10,7 @@ const editableStatuses = [
 	"accepted",
 	"closed",
 	"disputed",
+	"pending-information",
 ] as const;
 
 type EditableStatus = (typeof editableStatuses)[number];
@@ -85,7 +86,7 @@ const updateCase = async (req: Request, res: Response) => {
 		});
 	}
 
-	const status = hasStatus ? (requestedStatus as EditableStatus) : undefined;
+	let status = hasStatus ? (requestedStatus as EditableStatus) : undefined;
 	const assigneeId = hasAssigneeId
 		? (requestedAssigneeId as string).trim()
 		: undefined;
@@ -246,19 +247,51 @@ const updateCase = async (req: Request, res: Response) => {
 				}
 			}
 
-			const updateData = {
-				...(status !== undefined ? { status } : {}),
-				...(assigneeId !== undefined ? { assigneeId } : {}),
-			};
+			if (status === "pending-information") {
+				if (!["accepted", "pending-information"].includes(foundCase.status)) {
+					throw new ControllerError(
+						409,
+						`Cannot open or close conversation on case with status ${foundCase.status}.`,
+					);
+				}
+
+				// include assigned staff manager's id to condition when we have that set up
+				if (foundCase.assigneeId !== currentUser.id) {
+					throw new ControllerError(
+						403,
+						"Only the assigned staff member may open or close a conversation for the case.",
+					);
+				}
+
+				// the idea is to toggle the status back to the previous status if the case is already in pending-information and the user tries to sends status of pending-information again.
+				if (
+					foundCase.status === "pending-information" &&
+					status === "pending-information"
+				) {
+					status = foundCase.statusHistory[foundCase.statusHistory.length - 2]
+						?.status as EditableStatus;
+				}
+			}
+
+			const isOpeningConversation =
+				requestedStatus === "pending-information" &&
+				foundCase.status === "accepted";
+
+			const isClosingConversation =
+				requestedStatus === "pending-information" &&
+				foundCase.status === "pending-information";
 
 			const updateOperation = {
-				$set: updateData,
+				$set: {
+					...(status !== undefined ? { status } : {}),
+					...(assigneeId !== undefined ? { assigneeId } : {}),
+					...(isOpeningConversation ? { "conversation.status": "open" } : {}),
+					...(isClosingConversation ? { "conversation.status": "closed" } : {}),
+				},
 				$push: {
 					statusHistory: {
 						status: status ?? foundCase.status,
 						changedAt: new Date(),
-						// For assignment actions this is the target assignee.
-						// For other status actions this is the acting user.
 						assigneeId: assigneeId ?? currentUser.id,
 					},
 				},

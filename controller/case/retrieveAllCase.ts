@@ -1,5 +1,6 @@
 import type { Request, Response } from "express";
 import Case from "../../model/case.ts";
+import addConversationSenderName from "../../helper/addConversationSenderName.ts";
 
 const retrieveAllCase = async (req: Request, res: Response) => {
 	const currentUser = (
@@ -69,11 +70,12 @@ const retrieveAllCase = async (req: Request, res: Response) => {
 				message: "Cases not found",
 			});
 		}
+		const casesWithSenderName = await addConversationSenderName(cases);
 
 		return res.status(200).json({
 			status: "success",
 			message: "success",
-			data: cases,
+			data: casesWithSenderName,
 			meta: {
 				page: pageNumber,
 				perPage: limit,
